@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donor Portal — BLOODHUB</title>
+    <meta
+      name="description"
+      content="Register or login as a blood donor. See real-time emergency requests matching your blood type and city."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <div class="container"></div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+     AUTH PANEL (Not logged in)
+═══════════════════════════════════════════ -->
+    <div id="auth-panel">
+      <!-- LOGIN FORM -->
+      <div class="auth-wrapper" id="login-view">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="auth-icon"><i class="fas fa-droplet"></i></div>
+            <h2>Donor Login</h2>
+            <p>Access your personalized emergency dashboard</p>
+          </div>
+          <div class="auth-body">
+            <div
+              id="login-error"
+              class="alert alert-error"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleLogin(event)">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  id="login-email"
+                  placeholder="donor@email.com"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  id="login-pass"
+                  placeholder="Your password"
+                  required
+                />
+                <div style="text-align: right; margin-top: 0.4rem">
+                  <a
+                    onclick="switchToForgot()"
+                    style="
+                      color: var(--primary);
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                      cursor: pointer;
+                    "
+                    >Forgot Password?</a
+                  >
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-right-to-bracket"></i> Login to Dashboard
+              </button>
+            </form>
+            <div class="auth-switch">
+              New donor? <a onclick="switchToRegister()">Register here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="auth-wrapper" id="register-view" style="display: none">
+        <div class="auth-card" style="max-width: 600px">
+          <div class="auth-header">
+            <div class="auth-icon"><i class="fas fa-user-plus"></i></div>
+            <h2>Register as Donor</h2>
+            <p>Join 5,000+ heroes saving lives across Nepal</p>
+          </div>
+          <div class="auth-body">
+            <div
+              id="reg-error"
+              class="alert alert-error"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleRegister(event)">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    id="reg-name"
+                    placeholder="Your full name"
+                    required
+                    minlength="3"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Phone (Nepal Mobile) *</label>
+                  <div style="display: flex; align-items: center">
+                    <span
+                      style="
+                        background: var(--gray-100);
+                        border: 1px solid var(--gray-200);
+                        border-right: none;
+                        padding: 0 0.8rem;
+                        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+                        font-weight: 600;
+                        color: var(--gray-600);
+                        font-size: 0.9rem;
+                        height: 45px;
+                        display: flex;
+                        align-items: center;
+                      "
+                      >+977</span
+                    >
+                    <input
+                      type="tel"
+                      id="reg-phone"
+                      placeholder="98XXXXXXXX"
+                      required
+                      pattern="\d{10}"
+                      title="Must be a 10-digit number"
+                      maxlength="10"
+                      style="
+                        border-top-left-radius: 0;
+                        border-bottom-left-radius: 0;
+                        flex: 1;
+                        height: 45px;
+                      "
+                    />
+                  </div>
+                  <small
+                    style="
+                      display: block;
+                      margin-top: 0.25rem;
+                      font-size: 0.75rem;
+                      color: var(--gray-500);
+                    "
+                    >Enter 10-digit number only</small
+                  >
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    id="reg-email"
+                    placeholder="hero@email.com"
+                    required
+                    pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                    title="Must be a valid email (e.g. .com, .org)"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Password *</label>
+                  <input
+                    type="password"
+                    id="reg-pass"
+                    placeholder="Upper, Lower, Number"
+                    required
+                    minlength="8"
+                  />
+                  <small
+                    style="
+                      display: block;
+                      margin-top: 0.25rem;
+                      font-size: 0.75rem;
+                      color: var(--gray-500);
+                    "
+                    >Min. 8 chars, 1 uppercase, 1 lowercase, 1 number</small
+                  >
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Age *</label>
+                  <input
+                    type="number"
+                    id="reg-age"
+                    min="18"
+                    max="65"
+                    placeholder="18–65"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Blood Type *</label>
+                  <select id="reg-blood" required>
+                    <option value="">Select blood type</option>
+                    <option>O+</option>
+                    <option>O-</option>
+                    <option>A+</option>
+                    <option>A-</option>
+                    <option>B+</option>
+                    <option>B-</option>
+                    <option>AB+</option>
+                    <option>AB-</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>City / District *</label>
+                <select id="reg-city" required>
+                  <option value="">Select your city</option>
+                  <option>Biratnagar</option>
+                  <option>Kathmandu</option>
+                  <option>Pokhara</option>
+                  <option>Chitwan</option>
+                  <option>Lalitpur</option>
+                  <option>Bhaktapur</option>
+                  <option>Dharan</option>
+                  <option>Butwal</option>
+                  <option>Janakpur</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="reg-health" required />
+                  <label for="reg-health">
+                    <strong>Health Declaration:</strong> I confirm I am healthy,
+                    between 18–65 years old, weigh at least 45kg, and have not
+                    donated blood in the last 3 months. I am eligible to donate
+                    blood.
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-heart"></i> Register as Blood Donor
+              </button>
+            </form>
+            <div class="auth-switch">
+              Already registered? <a onclick="switchToLogin()">Login here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD VIEW -->
+      <div class="auth-wrapper" id="forgot-view" style="display: none">
+        <div class="auth-card">
+          <div class="auth-header" style="background: var(--gray-900)">
+            <div class="auth-icon"><i class="fas fa-key"></i></div>
+            <h2>Recover Account</h2>
+            <p>Enter your email to receive recovery instructions</p>
+          </div>
+          <div class="auth-body">
+            <div
+              id="forgot-message"
+              class="alert alert-info"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleForgotPassword(event)">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  id="forgot-email"
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg">
+                Send Recovery Link
+              </button>
+            </form>
+            <div class="auth-switch">
+              Remembered? <a onclick="switchToLogin()">Back to Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+     DONOR DASHBOARD (Logged in)
+═══════════════════════════════════════════ -->
+    <div id="dashboard-panel" style="display: none">
+      <!-- Dashboard Header -->
+      <div class="page-wrapper">
+        <div class="dashboard-header">
+          <div
+            class="container flex-between"
+            style="flex-wrap: wrap; gap: 1rem"
+          >
+            <div>
+              <h1 id="dash-welcome" style="color: #fff"></h1>
+              <p id="dash-sub" style="color: rgba(255, 255, 255, 0.75)"></p>
+            </div>
+            <button onclick="handleLogout()" class="btn btn-white btn-sm">
+              <i class="fas fa-arrow-right-from-bracket"></i> Logout
+            </button>
+          </div>
+        </div>
+
+        <div class="dashboard-body">
+          <div class="container">
+            <!-- Profile Card -->
+            <div class="profile-card mb-4">
+              <div class="profile-avatar" id="dash-avatar">🩸</div>
+              <div id="dash-blood-badge"></div>
+              <div>
+                <div class="profile-name" id="dash-pname"></div>
+                <div class="profile-sub" id="dash-pcity"></div>
+                <div
+                  class="profile-sub"
+                  id="dash-pphone"
+                  style="margin-top: 2px"
+                ></div>
+              </div>
+              <div style="margin-left: auto">
+                <div class="toggle-wrapper">
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="avail-toggle"
+                      onchange="toggleAvailability()"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-label" id="avail-label"
+                    >Available to Donate</span
+                  >
+                </div>
+                <p
+                  style="
+                    font-size: 0.78rem;
+                    color: var(--gray-400);
+                    margin-top: 4px;
+                  "
+                >
+                  Turn off to pause notifications
+                </p>
+              </div>
+            </div>
+
+            <!-- Active Requests -->
+            <div style="margin-bottom: 2.5rem">
+              <div class="flex-between mb-3" style="flex-wrap: wrap; gap: 1rem">
+                <div>
+                  <h2 style="font-size: 1.4rem">
+                    <i class="fas fa-siren" style="color: var(--primary)"></i>
+                    Emergency Requests Matching You
+                  </h2>
+                  <p
+                    id="dash-match-sub"
+                    style="font-size: 0.9rem; margin-top: 0.25rem"
+                  ></p>
+                </div>
+                <button
+                  onclick="renderMatchingRequests()"
+                  class="btn btn-outline btn-sm"
+                >
+                  <i class="fas fa-rotate-right"></i> Refresh
+                </button>
+              </div>
+              <div id="matching-requests-container"></div>
+            </div>
+
+            <!-- My Responses & History -->
+            <div class="grid-2" style="gap: 2rem">
+              <div>
+                <h3 style="margin-bottom: 1rem">
+                  <i
+                    class="fas fa-hand-holding-heart"
+                    style="color: var(--success)"
+                  ></i>
+                  My Responses
+                </h3>
+                <div id="my-responses-container"></div>
+              </div>
+              <div>
+                <h3 style="margin-bottom: 1rem">
+                  <i class="fas fa-history" style="color: var(--info)"></i>
+                  Donation History
+                </h3>
+                <div class="card">
+                  <p
+                    style="
+                      color: var(--gray-400);
+                      font-size: 0.9rem;
+                      text-align: center;
+                      padding: 1rem;
+                    "
+                  >
+                    No donation records yet. Your completed donations will
+                    appear here.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">
+              <i class="fas fa-droplet"></i> BLOODHUB
+            </div>
+            <p style="font-size: 0.9rem; max-width: 280px; line-height: 1.7">
+              Eliminating preventable deaths due to blood unavailability.
+              Connecting every patient with a donor within minutes.
+            </p>
+          </div>
+          <div>
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="donor.html">Donor Portal</a></li>
+              <li><a href="hospital.html">Hospital Portal</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Support</h4>
+            <ul class="footer-links">
+              <li><a href="contact.html">Emergency Line</a></li>
+              <li><a href="contact.html">Partnership</a></li>
+              <li><a href="contact.html">Office Location</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2026 BLOODHUB Nepal. Hackathon 2026 Project. Made with
+            <i class="fas fa-heart" style="color: var(--primary)"></i> to save
+            lives.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      let currentDonor = null;
+      let currentRequests = [];
+
+      // ── Check if already logged in ─────────────────────────
+      window.addEventListener("load", () => {
+        const saved = Session.liveDonor();
+        if (saved) {
+          currentDonor = saved;
+          showDashboard();
+        }
+      });
+
+      // ── Auth Toggles ───────────────────────────────────────
+      function switchToRegister() {
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("register-view").style.display = "flex";
+      }
+      function switchToLogin() {
+        document.getElementById("register-view").style.display = "none";
+        document.getElementById("forgot-view").style.display = "none";
+        document.getElementById("login-view").style.display = "flex";
+      }
+      function switchToForgot() {
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("register-view").style.display = "none";
+        document.getElementById("forgot-view").style.display = "flex";
+      }
+
+      function handleForgotPassword(e) {
+        e.preventDefault();
+        const email = document.getElementById("forgot-email").value;
+        const msgBox = document.getElementById("forgot-message");
+
+        // Simulating recovery
+        msgBox.style.display = "block";
+        msgBox.innerHTML = `<i class="fas fa-paper-plane"></i> Recovery link sent to <strong>${email}</strong>! Please check your inbox (and spam folder).`;
+
+        showNotif("Recovery link sent successfully!", "success");
+
+        // Auto-return after 5 seconds
+        setTimeout(() => {
+          if (document.getElementById("forgot-view").style.display === "flex") {
+            switchToLogin();
+            msgBox.style.display = "none";
+          }
+        }, 6000);
+      }
+
+      // ── Login ───────────────────────────────────────────────
+      async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById("login-email").value;
+        const pass = document.getElementById("login-pass").value;
+        const res = await Auth.loginDonor(email, pass);
+        if (!res.ok) {
+          const el = document.getElementById("login-error");
+          el.style.display = "flex";
+          el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${res.msg}`;
+          return;
+        }
+        currentDonor = res.donor;
+        showDashboard();
+        showNotif(
+          `Welcome back, ${currentDonor.name.split(" ")[0]}! 🩸`,
+          "success",
+        );
+      }
+
+      // ── Register ────────────────────────────────────────────
+      async function handleRegister(e) {
+        e.preventDefault();
+        const data = {
+          name: document.getElementById("reg-name").value,
+          email: document.getElementById("reg-email").value,
+          password: document.getElementById("reg-pass").value,
+          phone: "+977" + document.getElementById("reg-phone").value,
+          blood_type: document.getElementById("reg-blood").value,
+          city: document.getElementById("reg-city").value,
+        };
+        const res = await Auth.registerDonor(data);
+        if (!res.ok) {
+          const el = document.getElementById("reg-error");
+          el.style.display = "flex";
+          el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${res.msg}`;
+          return;
+        }
+        
+        // Auto sign-in
+        const loginRes = await Auth.loginDonor(data.email, data.password);
+        if (loginRes.ok) {
+            currentDonor = loginRes.donor;
+            showDashboard();
+            showNotif(
+              `Welcome, ${currentDonor.name.split(" ")[0]}! You are now a BLOODHUB Hero! 🎉`,
+              "success",
+            );
+        }
+      }
+
+      // ── Logout ──────────────────────────────────────────────
+      function handleLogout() {
+        Auth.logout();
+      }
+
+      // ── Show Dashboard ──────────────────────────────────────
+      function showDashboard() {
+        document.getElementById("auth-panel").style.display = "none";
+        document.getElementById("dashboard-panel").style.display = "block";
+        populateDashboard();
+        refreshDashboardData();
+      }
+
+      async function refreshDashboardData() {
+          currentRequests = await Matching.getRequestsForDonor();
+          renderMatchingRequests();
+          renderMyResponses();
+      }
+
+      function populateDashboard() {
+        const d = currentDonor;
+        const bType = d.bloodType || d.blood_type;
+        document.getElementById("dash-welcome").textContent =
+          `Welcome back, ${d.name}!`;
+        document.getElementById("dash-sub").textContent =
+          `Blood Type ${bType} · ${d.city} · Dashboard`;
+        document.getElementById("dash-blood-badge").innerHTML = bloodBadgeHTML(
+          bType,
+          "lg",
+        );
+        document.getElementById("dash-pname").textContent = d.name;
+        document.getElementById("dash-pcity").innerHTML =
+          `<i class="fas fa-location-dot"></i> ${d.city}`;
+        document.getElementById("dash-pphone").innerHTML =
+          `<i class="fas fa-phone"></i> ${d.phone}`;
+        document.getElementById("avail-toggle").checked = d.available === 1 || d.available === true;
+        document.getElementById("avail-label").textContent = d.available
+          ? "Available to Donate"
+          : "Unavailable";
+        document.getElementById("dash-match-sub").textContent =
+          `Showing active requests in ${d.city} for blood type ${bType}`;
+      }
+
+      // ── Render Matching Requests ────────────────────────────
+      function renderMatchingRequests() {
+        const d = currentDonor;
+        const box = document.getElementById("matching-requests-container");
+        const bType = d.bloodType || d.blood_type;
+        const matches = currentRequests.filter(r => r.status !== 'Fulfilled' && r.status !== 'Closed' && !r.responders.includes(d.id));
+
+        if (!d.available) {
+          box.innerHTML = `
+        <div class="empty-state card">
+          <i class="fas fa-toggle-off"></i>
+          <h4>You're currently unavailable</h4>
+          <p>Toggle your availability to see matching emergency requests.</p>
+        </div>`;
+          return;
+        }
+
+        if (matches.length === 0) {
+          box.innerHTML = `
+        <div class="empty-state card">
+          <i class="fas fa-circle-check" style="color:var(--success);"></i>
+          <h4>No active requests right now</h4>
+          <p>No blood requests in ${d.city} for type ${bType} at this moment. You'll be alerted when a new one arrives!</p>
+        </div>`;
+          return;
+        }
+
+        box.innerHTML = matches
+          .map(
+            (req) => `
+      <div class="request-card ${req.urgency ? req.urgency.toLowerCase() : 'normal'}" style="margin-bottom:1rem;">
+        <div class="request-card-header">
+          ${bloodBadgeHTML(req.bloodType)}
+          <div style="flex:1;">
+            <div style="font-weight:700; font-family:var(--font-heading); color:var(--gray-900);">${req.hospitalName}</div>
+            <div style="font-size:0.82rem; color:var(--gray-600);"><i class="fas fa-location-dot"></i> ${req.city}</div>
+          </div>
+          ${urgencyBadgeHTML(req.urgency || 'Normal')}
+        </div>
+        <div class="request-card-body">
+          <p style="font-size:0.92rem; color:var(--gray-800); margin-bottom:0.75rem;">${req.patientCondition}</p>
+          <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+            <span class="chip"><i class="fas fa-flask"></i> ${req.bloodType}</span>
+            <span class="chip"><i class="fas fa-vials"></i> ${req.quantity}</span>
+            <span class="chip"><i class="fas fa-hospital"></i> ${req.hospitalName}</span>
+          </div>
+        </div>
+        <div class="request-card-footer">
+          <button class="coming-btn" onclick="respondToRequest(${req.id}, this)"><i class="fas fa-hand-fist"></i> 🚨 I'M COMING — I Can Donate</button>
+        </div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      async function respondToRequest(requestId, btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+        
+        const res = await Matching.respondToRequest(requestId);
+        if (!res.ok) {
+          showNotif(res.msg, "error");
+          btn.innerHTML = '<i class="fas fa-hand-fist"></i> 🚨 I\'M COMING — I Can Donate';
+          btn.disabled = false;
+          return;
+        }
+        btn.className = "coming-btn responded";
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Response Sent! Hospital will contact you soon.';
+        showNotif(
+          "🎉 Your response has been sent to the hospital! They will contact you shortly.",
+          "success",
+        );
+        refreshDashboardData();
+      }
+
+      // ── My Responses ────────────────────────────────────────
+      function renderMyResponses() {
+        const d = currentDonor;
+        const box = document.getElementById("my-responses-container");
+        const responded = currentRequests.filter((r) => r.responders.includes(d.id));
+
+        if (responded.length === 0) {
+          box.innerHTML = `<div class="card"><p style="color:var(--gray-400); font-size:0.9rem; text-align:center; padding:1rem;">You haven't responded to any requests yet.</p></div>`;
+          return;
+        }
+        box.innerHTML = responded
+          .map(
+            (r) => `
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="flex gap-2">
+          ${bloodBadgeHTML(r.bloodType, "sm")}
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">${r.hospitalName}</div>
+            <div style="font-size:0.8rem; color:var(--gray-600);">${r.city}</div>
+          </div>
+          <span class="status-badge active" style="margin-left:auto;"><span class="dot dot-green"></span> Awaiting Contact</span>
+        </div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      // ── Availability Toggle ─────────────────────────────────
+      function toggleAvailability() {
+        const checked = document.getElementById("avail-toggle").checked;
+        currentDonor.available = checked ? 1 : 0;
+        // In a real app we would hit a backend endpoint to toggle availability.
+        // For now, it stays locally updated.
+        document.getElementById("avail-label").textContent = checked
+          ? "Available to Donate"
+          : "Unavailable";
+        showNotif(
+          checked
+            ? "You are now available for donation requests! 💪"
+            : "You have been marked as unavailable.",
+          checked ? "success" : "error",
+        );
+        renderMatchingRequests();
+      }
+    </script>
+  </body>
+</html>

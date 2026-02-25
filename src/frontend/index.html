@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLOODHUB — Real-Time Emergency Blood Donation Matching</title>
+    <meta
+      name="description"
+      content="Nepal's smart emergency blood donation matching platform. Connecting patients with donors in minutes."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- ═══════════════ NAVBAR ═══════════════ -->
+    <nav class="navbar">
+      <div class="container"></div>
+    </nav>
+
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <section class="hero" style="padding: 6rem 0 4rem">
+      <div
+        class="container"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 2rem;
+          max-width: 1280px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 0 1.5rem;
+        "
+      >
+        <div class="hero-content">
+          <div class="hero-eyebrow">
+            <i class="fas fa-heart-pulse"></i> Nepal's #1 Emergency Matching
+            Platform
+          </div>
+          <h1>Save Lives. Match Instantly. <span>No More Chaos.</span></h1>
+          <p>
+            BLOODHUB connects emergency blood requests from hospitals directly
+            to compatible donors in the same city — in under 5 minutes.
+          </p>
+          <div class="hero-btns">
+            <a href="donor.html" class="btn btn-primary btn-lg"
+              ><i class="fas fa-droplet"></i> Become a Donor</a
+            >
+            <a href="hospital.html" class="btn btn-outline btn-lg"
+              ><i class="fas fa-hospital"></i> Partner Hospital</a
+            >
+          </div>
+          <div
+            style="display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap"
+          >
+            <div class="flex gap-1">
+              <span class="dot dot-green"></span
+              ><span style="font-size: 0.85rem; color: var(--gray-600)"
+                >Live matching active</span
+              >
+            </div>
+            <div class="flex gap-1">
+              <i
+                class="fas fa-shield-halved"
+                style="color: var(--success); font-size: 0.85rem"
+              ></i
+              ><span style="font-size: 0.85rem; color: var(--gray-600)"
+                >Verified hospitals only</span
+              >
+            </div>
+            <div class="flex gap-1">
+              <i
+                class="fas fa-clock"
+                style="color: var(--primary); font-size: 0.85rem"
+              ></i
+              ><span style="font-size: 0.85rem; color: var(--gray-600)"
+                >&lt;5 min response</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-grid-cards">
+            <div class="hero-mini-card accent">
+              <h4><i class="fas fa-heart-pulse"></i> Live Now</h4>
+              <div class="big-num" id="live-counter">12</div>
+              <p style="font-size: 0.78rem">Active Requests</p>
+            </div>
+            <div class="hero-mini-card">
+              <h4 style="color: var(--gray-600)">Donors Ready</h4>
+              <div class="big-num">5,234</div>
+              <p style="font-size: 0.78rem">Verified donors</p>
+            </div>
+            <div class="hero-mini-card">
+              <h4 style="color: var(--gray-600)">Lives Saved</h4>
+              <div class="big-num">1,547</div>
+              <p style="font-size: 0.78rem">This year</p>
+            </div>
+            <div class="hero-mini-card accent">
+              <h4><i class="fas fa-stopwatch"></i> Avg. Match</h4>
+              <div class="big-num">&lt;5m</div>
+              <p style="font-size: 0.78rem">Response time</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ PROBLEM STATEMENT ═══════════════ -->
+    <section class="section" style="background: var(--gray-50)">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">
+            <i class="fas fa-triangle-exclamation"></i> The Crisis
+          </div>
+          <h2>Nepal's Emergency Blood System is Broken</h2>
+          <p>
+            Every day, patients die because the system relies on phone calls and
+            guesswork rather than technology.
+          </p>
+        </div>
+        <div class="grid-4">
+          <div class="stat-card" style="border-top: 4px solid var(--danger)">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-number" style="color: var(--danger)">3–4h</div>
+            <div class="stat-label">
+              Average response time for blood requests
+            </div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid #e67e22">
+            <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
+            <div class="stat-number" style="color: #e67e22">30–40%</div>
+            <div class="stat-label">
+              Requests fulfilled in the "golden hour"
+            </div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid var(--danger)">
+            <div class="stat-icon"><i class="fas fa-skull-crossbones"></i></div>
+            <div class="stat-number" style="color: var(--danger)">1,000s</div>
+            <div class="stat-label">Preventable deaths yearly in Nepal</div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid #e67e22">
+            <div class="stat-icon"><i class="fas fa-phone"></i></div>
+            <div class="stat-number" style="color: #e67e22">50+</div>
+            <div class="stat-label">
+              Phone calls per single emergency request
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">
+            <i class="fas fa-diagram-project"></i> The Process
+          </div>
+          <h2>How BLOODHUB Matching Works</h2>
+          <p>
+            A seamless 5-step automated pipeline from emergency need to donor
+            response.
+          </p>
+        </div>
+        <div class="steps-grid">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <h4>Hospital Creates Request</h4>
+            <p>
+              Verified hospital logs in and submits: blood type, quantity,
+              urgency, city.
+            </p>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <h4>Smart Matching</h4>
+            <p>
+              System filters donors by exact blood type AND same city
+              simultaneously.
+            </p>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <h4>Instant Alerts</h4>
+            <p>
+              Matched donors see requests on their dashboard. An automated alert
+              is sent to their email notifying them of the specific hospital and
+              city in need.
+            </p>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <h4>One-Click Response</h4>
+            <p>
+              Donor clicks "I'M COMING" — their contact info and location
+              availability are instantly shared with the hospital.
+            </p>
+          </div>
+          <div class="step-item">
+            <div class="step-num">5</div>
+            <h4>Hospital Acts</h4>
+            <p>
+              Hospital accesses a real-time roster of all responders to
+              coordinate the donation and save the patient's life.
+            </p>
+          </div>
+        </div>
+
+        <!-- Live Demo Box -->
+        <div class="demo-box mt-4">
+          <div class="section-header" style="margin-bottom: 1.5rem">
+            <div class="eyebrow"><i class="fas fa-flask"></i> Live Demo</div>
+            <h2 style="font-size: 1.75rem">
+              See the Matching Algorithm in Action
+            </h2>
+            <p>
+              Select a blood type and city to instantly see how many donors are
+              ready in that area.
+            </p>
+          </div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr auto;
+              gap: 1rem;
+              align-items: end;
+              flex-wrap: wrap;
+            "
+          >
+            <div class="form-group" style="margin-bottom: 0">
+              <label
+                ><i class="fas fa-droplet" style="color: var(--primary)"></i>
+                Blood Type</label
+              >
+              <select id="demo-blood">
+                <option value="">-- Select Blood Type --</option>
+                <option>O+</option>
+                <option>O-</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0">
+              <label
+                ><i
+                  class="fas fa-location-dot"
+                  style="color: var(--primary)"
+                ></i>
+                City / District</label
+              >
+              <select id="demo-city">
+                <option value="">-- Select City --</option>
+                <option>Biratnagar</option>
+                <option>Kathmandu</option>
+                <option>Pokhara</option>
+                <option>Chitwan</option>
+                <option>Lalitpur</option>
+                <option>Bhaktapur</option>
+              </select>
+            </div>
+            <button
+              class="btn btn-primary"
+              onclick="runDemo()"
+              style="height: 50px"
+            >
+              <i class="fas fa-search"></i> Find Donors
+            </button>
+          </div>
+          <div class="demo-result" id="demo-result">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+              "
+            >
+              <div>
+                <div class="demo-match-count" id="demo-count">0</div>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: var(--gray-600);
+                    margin-top: 0.25rem;
+                  "
+                  id="demo-text"
+                >
+                  donors ready
+                </p>
+              </div>
+              <div
+                id="demo-donor-list"
+                class="demo-donor-list"
+                style="flex: 1"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ FEATURES ═══════════════ -->
+    <section class="section" style="background: var(--gray-50)">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow"><i class="fas fa-star"></i> Features</div>
+          <h2>Every Feature Built for Emergencies</h2>
+        </div>
+        <div class="grid-3">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-crosshairs"></i></div>
+            <h3>Smart Matching Engine</h3>
+            <p>
+              Dual-filter algorithm matches donors by blood type AND location
+              simultaneously — zero irrelevant alerts.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bell"></i></div>
+            <h3>Instant Email & Dashboard Alerts</h3>
+            <p>
+              Donors receive automated email notifications and see matching
+              requests the moment they are published. No delays, no phone tag.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Real-Time Hospital View</h3>
+            <p>
+              Hospitals get a live responders table updated as donors click "I'M
+              COMING". No refresh needed.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+            <h3>Verified Donors</h3>
+            <p>
+              Every donor completes a health eligibility declaration ensuring
+              blood safety standards are met.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-hospital"></i></div>
+            <h3>Hospital Authentication</h3>
+            <p>
+              Strict hospital verification process — only government-licensed
+              health facilities can create requests.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-hand-pointer"></i></div>
+            <h3>One-Click Donor Response</h3>
+            <p>
+              Donors respond to emergencies with a single click. Their contact
+              details go straight to the hospital.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ IMPACT COUNTERS ═══════════════ -->
+    <section class="impact-section">
+      <div class="container">
+        <div class="section-header" style="margin-bottom: 3rem">
+          <h2 style="color: #fff">Our Growing Impact</h2>
+          <p style="color: rgba(255, 255, 255, 0.75)">
+            Real numbers. Real lives. Real change.
+          </p>
+        </div>
+        <div class="impact-grid">
+          <div>
+            <div class="impact-number">50+</div>
+            <div class="impact-label">Partner Hospitals</div>
+          </div>
+          <div>
+            <div class="impact-number">5,000+</div>
+            <div class="impact-label">Registered Donors</div>
+          </div>
+          <div>
+            <div class="impact-number">1,500+</div>
+            <div class="impact-label">Lives Saved</div>
+          </div>
+          <div>
+            <div class="impact-number">&lt;5 min</div>
+            <div class="impact-label">Average Response Time</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ DUAL CTA ═══════════════ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">
+            <i class="fas fa-hand-holding-heart"></i> Join the Mission
+          </div>
+          <h2>Make a Difference Today</h2>
+        </div>
+        <div class="dual-cta">
+          <div class="cta-box donor">
+            <div>
+              <i
+                class="fas fa-droplet"
+                style="font-size: 3rem; opacity: 0.6"
+              ></i>
+            </div>
+            <h3>For Donors — Be a Hero</h3>
+            <p>
+              Register in 2 minutes. Get matched to emergencies near you. Save a
+              life with a single click.
+            </p>
+            <div>
+              <a href="donor.html" class="btn btn-white"
+                >Register as Donor <i class="fas fa-arrow-right"></i
+              ></a>
+            </div>
+          </div>
+          <div class="cta-box hospital">
+            <div>
+              <i
+                class="fas fa-hospital"
+                style="font-size: 3rem; opacity: 0.6"
+              ></i>
+            </div>
+            <h3>For Hospitals — Join Our Network</h3>
+            <p>
+              Create blood requests and receive real-time donor responses. No
+              more manual calls.
+            </p>
+            <div>
+              <a href="hospital.html" class="btn btn-white"
+                >Register Your Hospital <i class="fas fa-arrow-right"></i
+              ></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">
+              <i class="fas fa-droplet"></i> BLOODHUB
+            </div>
+            <p style="font-size: 0.9rem; max-width: 280px; line-height: 1.7">
+              Eliminating preventable deaths due to blood unavailability.
+              Connecting every patient with a donor within minutes.
+            </p>
+          </div>
+          <div>
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="donor.html">Donor Portal</a></li>
+              <li><a href="hospital.html">Hospital Portal</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Support</h4>
+            <ul class="footer-links">
+              <li><a href="contact.html">Emergency Line</a></li>
+              <li><a href="contact.html">Partnership</a></li>
+              <li><a href="contact.html">Office Location</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2026 BLOODHUB Nepal. Hackathon 2026 Project. Made with
+            <i class="fas fa-heart" style="color: var(--primary)"></i> to save
+            lives.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Live counter animation
+      let liveCount = 12;
+      setInterval(() => {
+        if (Math.random() > 0.7) {
+          liveCount += Math.random() > 0.5 ? 1 : -1;
+          liveCount = Math.max(5, liveCount);
+          document.getElementById("live-counter").textContent = liveCount;
+        }
+      }, 3000);
+
+      // Demo matching function
+      function runDemo() {
+        const bt = document.getElementById("demo-blood").value;
+        const city = document.getElementById("demo-city").value;
+        if (!bt || !city) {
+          alert("Please select both blood type and city.");
+          return;
+        }
+        const matches = Matching.getMatchCountPreview(bt, city);
+        const result = document.getElementById("demo-result");
+        document.getElementById("demo-count").textContent = matches.length;
+        document.getElementById("demo-text").textContent =
+          `donor${matches.length !== 1 ? "s" : ""} with blood type ${bt} ready in ${city}`;
+        const list = document.getElementById("demo-donor-list");
+        if (matches.length > 0) {
+          list.innerHTML = matches
+            .map(
+              (d) =>
+                `<span class="demo-donor-chip">${bloodBadgeHTML(d.bloodType, "sm")} ${d.name}</span>`,
+            )
+            .join("");
+        } else {
+          list.innerHTML =
+            '<p style="color:var(--gray-400); font-size:0.9rem;">No donors registered in this city yet. Be the first!</p>';
+        }
+        result.classList.add("show");
+      }
+    </script>
+  </body>
+</html>

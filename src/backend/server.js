@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
@@ -8,6 +9,7 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // MySQL connection pool
@@ -148,10 +150,35 @@ app.post("/login", async (req, res) => {
       { expiresIn: "24h" },
     );
 
+    // Shape user object sent to frontend so dashboards can use city/phone/etc.
+    let safeUser;
+    if (role === "donor") {
+      safeUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        blood_type: user.blood_type,
+        city: user.city,
+        phone: user.phone,
+        available: !!user.available,
+      };
+    } else if (role === "hospital") {
+      safeUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        city: user.city,
+        phone: user.phone,
+      };
+    } else {
+      // Fallback (should not happen)
+      safeUser = { id: user.id, name: user.name, email: user.email };
+    }
+
     res.json({
       token,
       role,
-      user: { id: user.id, name: user.name || user.name, email: user.email },
+      user: safeUser,
     });
   } catch (err) {
     console.error(err);
@@ -179,12 +206,19 @@ app.post("/create-request", authenticateToken, async (req, res) => {
     return res.status(400).json({ error: "Blood type and city required" });
 
   try {
+    // Normalize quantity in case frontend sends values like "2 units"
+    let normalizedQuantity = quantity;
+    if (typeof normalizedQuantity === "string") {
+      const match = normalizedQuantity.match(/\d+/);
+      normalizedQuantity = match ? parseInt(match[0], 10) : 1;
+    }
+
     const [result] = await pool.query(
       "INSERT INTO requests (hospital_id, blood_type, quantity, urgency, city, patient_details) VALUES (?, ?, ?, ?, ?, ?)",
       [
         hospital_id,
         blood_type,
-        quantity,
+        normalizedQuantity,
         urgency,
         city,
         patient_details || null,
@@ -227,8 +261,10 @@ app.post("/create-request", authenticateToken, async (req, res) => {
       matchedDonors: donors.length,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create request" });
+    console.error("Create request error:", err);
+    res
+      .status(500)
+      .json({ error: err.message || "Failed to create request" });
   }
 });
 
@@ -236,7 +272,7 @@ app.get("/", (req, res) => {
   res.send("BLOODHUB Backend running - Database connected");
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3300;
 
 // POST /respond - Donor only
 app.post("/respond", authenticateToken, async (req, res) => {
@@ -343,6 +379,51 @@ app.get(
     }
   },
 );
+
+// GET /requests/hospital - Hospital only
+app.get("/requests/hospital", authenticateToken, async (req, res) => {
+  if (req.user.role !== "hospital") return res.status(403).json({ error: "Only hospitals can view their requests" });
+  try {
+    const [requests] = await pool.query(
+      "SELECT * FROM requests WHERE hospital_id = ? ORDER BY id DESC",
+      [req.user.id]
+    );
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+});
+
+// GET /requests/donor - Donor only
+app.get("/requests/donor", authenticateToken, async (req, res) => {
+  if (req.user.role !== "donor") return res.status(403).json({ error: "Only donors can view matching requests" });
+  try {
+    const [donorInfo] = await pool.query("SELECT blood_type, city FROM donors WHERE id = ?", [req.user.id]);
+    if (donorInfo.length === 0) return res.status(404).json({ error: "Donor not found" });
+    const { blood_type, city } = donorInfo[0];
+
+    const [requests] = await pool.query(
+      `SELECT r.*, h.name as hospitalName, r.patient_details as patientCondition 
+       FROM requests r 
+       JOIN hospitals h ON r.hospital_id = h.id 
+       WHERE r.blood_type = ? AND r.city = ? 
+       ORDER BY r.id DESC`,
+      [blood_type, city]
+    );
+
+    const [responses] = await pool.query(
+      "SELECT request_id FROM responses WHERE donor_id = ?",
+      [req.user.id]
+    );
+    const respondedIds = responses.map(r => r.request_id);
+
+    res.json({ requests, respondedIds });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

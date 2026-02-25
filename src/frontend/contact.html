@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us — BLOODHUB</title>
+    <meta
+      name="description"
+      content="Get in touch with BLOODHUB for hospital partnerships, support, or general inquiries."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <div class="container"></div>
+    </nav>
+
+    <!-- HERO -->
+    <section
+      style="
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        padding: 8rem 0 4rem;
+        text-align: center;
+      "
+    >
+      <div class="container">
+        <div
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 0.35rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+          "
+        >
+          <i class="fas fa-paper-plane"></i> Get in Touch
+        </div>
+        <h1 style="color: #fff; margin-bottom: 0.75rem">We're Here to Help</h1>
+        <p
+          style="
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 540px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+          "
+        >
+          For hospital partnerships, technical support, or general inquiries.
+          For medical emergencies call
+          <strong>102</strong> immediately.
+        </p>
+      </div>
+    </section>
+
+    <!-- CONTACT GRID -->
+    <section class="section">
+      <div class="container">
+        <div class="grid-2" style="gap: 3rem; align-items: start">
+          <!-- LEFT: Contact Form -->
+          <div class="card" style="padding: 2.5rem">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem">
+              Send a Message
+            </h2>
+            <div
+              id="contact-success"
+              class="alert alert-success"
+              style="display: none"
+            >
+              <i class="fas fa-check-circle"></i> Message sent successfully!
+              We'll respond within 24 hours.
+            </div>
+            <form onsubmit="sendContactForm(event)">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Your Name *</label>
+                  <input type="text" required placeholder="Full name" />
+                </div>
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input type="email" required placeholder="your@email.com" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Phone (optional)</label>
+                <input type="tel" placeholder="98XXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label>Subject *</label>
+                <select required>
+                  <option value="">Select topic</option>
+                  <option>Hospital Partnership</option>
+                  <option>Technical Support / Bug</option>
+                  <option>Volunteer / Join Team</option>
+                  <option>Media / Press Inquiry</option>
+                  <option>General Inquiry</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Message *</label>
+                <textarea
+                  rows="5"
+                  required
+                  placeholder="Describe your inquiry in detail..."
+                ></textarea>
+              </div>
+              <button
+                type="submit"
+                id="contact-submit-btn"
+                class="btn btn-primary btn-block btn-lg"
+              >
+                <i class="fas fa-paper-plane"></i> Send Message
+              </button>
+            </form>
+          </div>
+
+          <!-- RIGHT: Contact Info -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem">
+            <!-- Emergency Hotline -->
+            <div
+              class="card"
+              style="
+                background: linear-gradient(
+                  135deg,
+                  var(--primary),
+                  var(--primary-dark)
+                );
+                border: none;
+                padding: 2rem;
+              "
+            >
+              <h3 style="color: #fff; margin-bottom: 0.5rem">
+                <i class="fas fa-ambulance"></i> 24/7 Emergency Hotline
+              </h3>
+              <div
+                style="
+                  font-family: var(--font-heading);
+                  font-size: 3rem;
+                  font-weight: 800;
+                  color: #fff;
+                  line-height: 1;
+                  margin: 0.5rem 0;
+                "
+              >
+                102
+              </div>
+              <p
+                style="color: rgba(255, 255, 255, 0.8); margin-bottom: 0.75rem"
+              >
+                Nepal Emergency Medical Services
+              </p>
+              <div
+                style="
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  color: #fff;
+                  font-family: var(--font-heading);
+                "
+              >
+                +977 9815350896
+              </div>
+              <p
+                style="
+                  color: rgba(255, 255, 255, 0.75);
+                  font-size: 0.85rem;
+                  margin-top: 0.25rem;
+                "
+              >
+                BLOODHUB Emergency Coordination
+              </p>
+            </div>
+
+            <!-- Info Cards -->
+            <div class="card">
+              <div class="flex gap-2" style="margin-bottom: 1.25rem">
+                <div
+                  style="
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    background: var(--primary-light);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                  "
+                >
+                  <i class="fas fa-envelope" style="color: var(--primary)"></i>
+                </div>
+                <div>
+                  <div
+                    style="font-weight: 700; font-family: var(--font-heading)"
+                  >
+                    Email Us
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.9rem">
+                    info@bloodhub.org.np
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.85rem">
+                    Response within 24 hours
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2" style="margin-bottom: 1.25rem">
+                <div
+                  style="
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    background: var(--primary-light);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                  "
+                >
+                  <i
+                    class="fas fa-location-dot"
+                    style="color: var(--primary)"
+                  ></i>
+                </div>
+                <div>
+                  <div
+                    style="font-weight: 700; font-family: var(--font-heading)"
+                  >
+                    Office
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.9rem">
+                    Itahari, Sunsari
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.85rem">
+                    Province 1, Nepal
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2" style="margin-bottom: 1.25rem">
+                <div
+                  style="
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    background: var(--primary-light);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                  "
+                >
+                  <i class="fas fa-clock" style="color: var(--primary)"></i>
+                </div>
+                <div>
+                  <div
+                    style="font-weight: 700; font-family: var(--font-heading)"
+                  >
+                    Office Hours
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.9rem">
+                    Sun–Fri: 9:00 AM – 6:00 PM
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.85rem">
+                    Emergency line is 24/7
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <div
+                  style="
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    background: var(--primary-light);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                  "
+                >
+                  <i class="fab fa-facebook" style="color: var(--primary)"></i>
+                </div>
+                <div>
+                  <div
+                    style="font-weight: 700; font-family: var(--font-heading)"
+                  >
+                    Social Media
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.9rem">
+                    @BloodHubNepal
+                  </div>
+                  <div style="color: var(--gray-600); font-size: 0.85rem">
+                    Facebook · Instagram · Twitter
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- For Hospitals box -->
+            <div class="card" style="border-top: 4px solid var(--gray-900)">
+              <h4 style="margin-bottom: 0.5rem">
+                <i class="fas fa-hospital" style="color: var(--gray-900)"></i>
+                Hospital Partnership
+              </h4>
+              <p style="font-size: 0.9rem; margin-bottom: 1rem">
+                Want to join the BLOODHUB network? Register your hospital and
+                get access to our donor matching system instantly.
+              </p>
+              <a href="hospital.html" class="btn btn-outline btn-sm"
+                ><i class="fas fa-arrow-right"></i> Register Hospital</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" style="background: var(--gray-50)">
+      <div class="container" style="max-width: 800px">
+        <div class="section-header">
+          <div class="eyebrow"><i class="fas fa-circle-question"></i> FAQ</div>
+          <h2>Common Questions</h2>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>How quickly do you respond to partnership inquiries?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Hospital partnership applications are typically reviewed and
+              responded to within 1–2 business days. For the demo, all hospitals
+              are auto-verified upon registration.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Is there a cost to join as a hospital or donor?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              BLOODHUB is completely free for donors. Hospitals during the
+              initial launch period also have free access. A sustainability
+              model with premium features is planned for Year 2.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>How do I report a technical issue?</span>
+            <i class="fas fa-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Use the contact form above and select "Technical Support / Bug" as
+              the topic. Please include your browser, device and a description
+              of the issue. For urgent platform issues email us directly at
+              tech@bloodhub.org.np.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">
+              <i class="fas fa-droplet"></i> BLOODHUB
+            </div>
+            <p style="font-size: 0.9rem; max-width: 280px; line-height: 1.7">
+              Eliminating preventable deaths due to blood unavailability.
+              Connecting every patient with a donor within minutes.
+            </p>
+          </div>
+          <div>
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="donor.html">Donor Portal</a></li>
+              <li><a href="hospital.html">Hospital Portal</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="contact.html">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <ul class="footer-links">
+              <li><a href="#">+977 9815350896</a></li>
+              <li><a href="#">info@bloodhub.org.np</a></li>
+              <li><a href="#">Itahari, Nepal</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2026 BLOODHUB Nepal. Hackathon 2026 Project. Made with
+            <i class="fas fa-heart" style="color: var(--primary)"></i> to save
+            lives.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      function toggleFaq(el) {
+        const item = el.parentElement;
+        document.querySelectorAll(".faq-item").forEach((i) => {
+          if (i !== item) i.classList.remove("open");
+        });
+        item.classList.toggle("open");
+      }
+      function sendContactForm(e) {
+        e.preventDefault();
+        const btn = document.getElementById("contact-submit-btn");
+        btn.innerHTML =
+          '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+        btn.disabled = true;
+        setTimeout(() => {
+          document.getElementById("contact-success").style.display = "flex";
+          e.target.reset();
+          btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+          btn.disabled = false;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 1500);
+      }
+    </script>
+  </body>
+</html>

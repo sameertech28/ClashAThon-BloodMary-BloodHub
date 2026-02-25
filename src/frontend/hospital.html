@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Portal — BLOODHUB</title>
+    <meta
+      name="description"
+      content="Partner hospital dashboard. Create blood requests and see real-time donor responders."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <!-- EmailJS SDK for donor email notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <div class="container"></div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+     AUTH PANEL
+═══════════════════════════════════════════ -->
+    <div id="auth-panel">
+      <!-- LOGIN -->
+      <div class="auth-wrapper" id="login-view">
+        <div class="auth-card">
+          <div class="auth-header" style="background: var(--gray-900)">
+            <div class="auth-icon"><i class="fas fa-hospital"></i></div>
+            <h2>Hospital Login</h2>
+            <p>Partner hospital dashboard access</p>
+          </div>
+          <div class="auth-body">
+            <div
+              id="login-error"
+              class="alert alert-error"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleLogin(event)">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  id="login-email"
+                  placeholder="hospital@email.com"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  id="login-pass"
+                  placeholder="Your password"
+                  required
+                />
+                <div style="text-align: right; margin-top: 0.4rem">
+                  <a
+                    onclick="switchToForgot()"
+                    style="
+                      color: var(--primary);
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                      cursor: pointer;
+                    "
+                    >Forgot Password?</a
+                  >
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-block btn-lg"
+                style="
+                  background: var(--gray-900);
+                  color: #fff;
+                  border-radius: var(--radius-full);
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 0.5rem;
+                "
+              >
+                <i class="fas fa-right-to-bracket"></i> Login to Dashboard
+              </button>
+            </form>
+            <div class="auth-switch">
+              New hospital? <a onclick="switchToRegister()">Register here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="auth-wrapper" id="register-view" style="display: none">
+        <div class="auth-card" style="max-width: 580px">
+          <div class="auth-header" style="background: var(--gray-900)">
+            <div class="auth-icon"><i class="fas fa-hospital-user"></i></div>
+            <h2>Register Hospital</h2>
+            <p>Join the BLOODHUB emergency network</p>
+          </div>
+          <div class="auth-body">
+            <div class="alert alert-info" style="margin-bottom: 1rem">
+              <i class="fas fa-info-circle"></i>
+              <span
+                >All hospitals are <strong>auto-verified</strong> upon
+                registration for this demo.</span
+              >
+            </div>
+            <div
+              id="reg-error"
+              class="alert alert-error"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleRegister(event)">
+              <div class="form-group">
+                <label>Hospital / Facility Name *</label>
+                <input
+                  type="text"
+                  id="reg-name"
+                  placeholder="e.g. City Medical College"
+                  required
+                />
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>License / Registration No. *</label>
+                  <input
+                    type="text"
+                    id="reg-license"
+                    placeholder="e.g. BRN-001"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label>City *</label>
+                  <select id="reg-city" required>
+                    <option value="">Select city</option>
+                    <option>Biratnagar</option>
+                    <option>Kathmandu</option>
+                    <option>Pokhara</option>
+                    <option>Chitwan</option>
+                    <option>Lalitpur</option>
+                    <option>Bhaktapur</option>
+                    <option>Dharan</option>
+                    <option>Butwal</option>
+                    <option>Janakpur</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    id="reg-email"
+                    placeholder="hospital@email.com"
+                    required
+                    pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                    title="Must be a valid email (e.g. .com, .org)"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Phone (Hospital Hotline) *</label>
+                  <div style="display: flex; align-items: center">
+                    <span
+                      style="
+                        background: var(--gray-100);
+                        border: 1px solid var(--gray-200);
+                        border-right: none;
+                        padding: 0 0.8rem;
+                        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+                        font-weight: 600;
+                        color: var(--gray-600);
+                        font-size: 0.9rem;
+                        height: 48px;
+                        display: flex;
+                        align-items: center;
+                      "
+                      >+977</span
+                    >
+                    <input
+                      type="tel"
+                      id="reg-phone"
+                      placeholder="98XXXXXXXX"
+                      required
+                      pattern="\d{10}"
+                      title="Must be a 10-digit number"
+                      maxlength="10"
+                      style="
+                        border-top-left-radius: 0;
+                        border-bottom-left-radius: 0;
+                        flex: 1;
+                        height: 48px;
+                      "
+                    />
+                  </div>
+                  <small
+                    style="
+                      display: block;
+                      margin-top: 0.25rem;
+                      font-size: 0.75rem;
+                      color: var(--gray-500);
+                    "
+                    >Enter 10-digit number only</small
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Password *</label>
+                <input
+                  type="password"
+                  id="reg-pass"
+                  placeholder="Upper, Lower, Number"
+                  required
+                  minlength="8"
+                />
+                <small
+                  style="
+                    display: block;
+                    margin-top: 0.25rem;
+                    font-size: 0.75rem;
+                    color: var(--gray-500);
+                  "
+                  >Min. 8 chars, 1 uppercase, 1 lowercase, 1 number</small
+                >
+              </div>
+              <button
+                type="submit"
+                class="btn btn-block btn-lg"
+                style="
+                  background: var(--gray-900);
+                  color: #fff;
+                  border-radius: var(--radius-full);
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 0.5rem;
+                "
+              >
+                <i class="fas fa-plus"></i> Register Hospital
+              </button>
+            </form>
+            <div class="auth-switch">
+              Already registered? <a onclick="switchToLogin()">Login here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD VIEW -->
+      <div class="auth-wrapper" id="forgot-view" style="display: none">
+        <div class="auth-card">
+          <div class="auth-header" style="background: var(--gray-900)">
+            <div class="auth-icon"><i class="fas fa-key"></i></div>
+            <h2>Recover Account</h2>
+            <p>Enter your hospital email to receive recovery instructions</p>
+          </div>
+          <div class="auth-body">
+            <div
+              id="forgot-message"
+              class="alert alert-info"
+              style="display: none"
+            ></div>
+            <form onsubmit="handleForgotPassword(event)">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  id="forgot-email"
+                  placeholder="hospital@email.com"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="btn btn-primary btn-block btn-lg"
+                style="background: var(--gray-900)"
+              >
+                Send Recovery Link
+              </button>
+            </form>
+            <div class="auth-switch">
+              Remembered? <a onclick="switchToLogin()">Back to Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+     HOSPITAL DASHBOARD
+═══════════════════════════════════════════ -->
+    <div id="dashboard-panel" style="display: none">
+      <div class="page-wrapper">
+        <!-- Header -->
+        <div
+          class="dashboard-header"
+          style="background: linear-gradient(135deg, var(--gray-900), #2c3e50)"
+        >
+          <div
+            class="container flex-between"
+            style="flex-wrap: wrap; gap: 1rem"
+          >
+            <div>
+              <h1 style="color: #fff" id="dash-title"></h1>
+              <p id="dash-sub" style="color: rgba(255, 255, 255, 0.7)"></p>
+            </div>
+            <div class="flex gap-2">
+              <span class="status-badge active"
+                ><i class="fas fa-circle-check"></i> Verified Hospital</span
+              >
+              <button onclick="handleLogout()" class="btn btn-white btn-sm">
+                <i class="fas fa-arrow-right-from-bracket"></i> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="dashboard-body">
+          <div class="container">
+            <!-- Stats Row -->
+            <div class="grid-4 mb-4">
+              <div
+                class="stat-card"
+                style="border-top: 4px solid var(--primary)"
+              >
+                <div class="stat-icon">
+                  <i
+                    class="fas fa-circle-dot"
+                    style="color: var(--primary)"
+                  ></i>
+                </div>
+                <div class="stat-number" id="stat-active">0</div>
+                <div class="stat-label">Active Requests</div>
+              </div>
+              <div
+                class="stat-card"
+                style="border-top: 4px solid var(--success)"
+              >
+                <div class="stat-icon">
+                  <i class="fas fa-users" style="color: var(--success)"></i>
+                </div>
+                <div class="stat-number" id="stat-responders">0</div>
+                <div class="stat-label">Total Responders</div>
+              </div>
+              <div class="stat-card" style="border-top: 4px solid var(--info)">
+                <div class="stat-icon">
+                  <i class="fas fa-list-check" style="color: var(--info)"></i>
+                </div>
+                <div class="stat-number" id="stat-total">0</div>
+                <div class="stat-label">Total Requests Created</div>
+              </div>
+              <div
+                class="stat-card"
+                style="border-top: 4px solid var(--warning)"
+              >
+                <div class="stat-icon">
+                  <i class="fas fa-clock" style="color: var(--warning)"></i>
+                </div>
+                <div class="stat-number">&lt;5m</div>
+                <div class="stat-label">Avg. First Response</div>
+              </div>
+            </div>
+
+            <!-- Two-column layout -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 400px 1fr;
+                gap: 2rem;
+                align-items: start;
+              "
+            >
+              <!-- LEFT: Create Request Form -->
+              <div>
+                <div class="card" style="border-top: 4px solid var(--primary)">
+                  <h3 style="margin-bottom: 1.5rem">
+                    <i
+                      class="fas fa-siren-on"
+                      style="color: var(--primary)"
+                    ></i>
+                    Create Blood Request
+                  </h3>
+                  <div
+                    id="create-success"
+                    class="alert alert-success"
+                    style="display: none"
+                  ></div>
+                  <form onsubmit="handleCreateRequest(event)">
+                    <div class="form-group">
+                      <label>Blood Type Needed *</label>
+                      <select id="req-blood" required>
+                        <option value="">Select blood type</option>
+                        <option>O+</option>
+                        <option>O-</option>
+                        <option>A+</option>
+                        <option>A-</option>
+                        <option>B+</option>
+                        <option>B-</option>
+                        <option>AB+</option>
+                        <option>AB-</option>
+                      </select>
+                    </div>
+                    <div class="form-grid-2">
+                      <div class="form-group">
+                        <label>Quantity *</label>
+                        <select id="req-qty" required>
+                          <option value="">Quantity</option>
+                          <option>1 unit</option>
+                          <option>2 units</option>
+                          <option>3 units</option>
+                          <option>4 units</option>
+                          <option>5+ units</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label>Urgency *</label>
+                        <select id="req-urgency" required>
+                          <option value="">Urgency level</option>
+                          <option>Critical</option>
+                          <option>Urgent</option>
+                          <option>Normal</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>City (auto-filled from profile)</label>
+                      <input
+                        type="text"
+                        id="req-city"
+                        placeholder="City"
+                        readonly
+                        style="background: var(--gray-100); cursor: not-allowed"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Patient Condition / Reason *</label>
+                      <textarea
+                        id="req-condition"
+                        rows="3"
+                        placeholder="e.g. Accident victim, needs emergency surgery"
+                        required
+                      ></textarea>
+                    </div>
+                    <button
+                      type="submit"
+                      class="btn btn-primary btn-block btn-lg"
+                    >
+                      <i class="fas fa-siren"></i> 🚨 CREATE EMERGENCY REQUEST
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- RIGHT: Active Requests + Responders -->
+              <div>
+                <div class="flex-between mb-3">
+                  <h2 style="font-size: 1.3rem">
+                    <i class="fas fa-list" style="color: var(--primary)"></i>
+                    Your Active Blood Requests
+                  </h2>
+                  <button
+                    onclick="renderActiveRequests()"
+                    class="btn btn-outline btn-sm"
+                  >
+                    <i class="fas fa-rotate-right"></i> Refresh
+                  </button>
+                </div>
+                <div id="active-requests-container"></div>
+
+                <div class="divider"></div>
+                <h3 style="margin-bottom: 1rem">
+                  <i class="fas fa-history" style="color: var(--gray-600)"></i>
+                  Past Requests
+                </h3>
+                <div id="past-requests-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      let currentHospital = null;
+      let expandedRequestId = null;
+      let myRequests = [];
+
+      // Check existing session
+      window.addEventListener("load", () => {
+        const saved = Session.liveHospital();
+        if (saved) {
+          currentHospital = saved;
+          showDashboard();
+        }
+      });
+
+      function switchToRegister() {
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("register-view").style.display = "flex";
+      }
+      function switchToLogin() {
+        document.getElementById("register-view").style.display = "none";
+        document.getElementById("forgot-view").style.display = "none";
+        document.getElementById("login-view").style.display = "flex";
+      }
+      function switchToForgot() {
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("register-view").style.display = "none";
+        document.getElementById("forgot-view").style.display = "flex";
+      }
+
+      function handleForgotPassword(e) {
+        e.preventDefault();
+        const email = document.getElementById("forgot-email").value;
+        const msgBox = document.getElementById("forgot-message");
+        msgBox.style.display = "block";
+        msgBox.innerHTML = `<i class="fas fa-paper-plane"></i> Hospital recovery instructions sent to <strong>${email}</strong>.`;
+        showNotif("Recovery request processed.", "success");
+        setTimeout(() => {
+          if (document.getElementById("forgot-view").style.display === "flex") {
+            switchToLogin();
+            msgBox.style.display = "none";
+          }
+        }, 6000);
+      }
+
+      async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById("login-email").value;
+        const pass = document.getElementById("login-pass").value;
+        const res = await Auth.loginHospital(email, pass);
+        if (!res.ok) {
+          const el = document.getElementById("login-error");
+          el.style.display = "flex";
+          el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${res.msg}`;
+          return;
+        }
+        currentHospital = res.hospital;
+        showDashboard();
+        showNotif(`Welcome, ${currentHospital.name}!`, "success");
+      }
+
+      async function handleRegister(e) {
+        e.preventDefault();
+        const data = {
+          name: document.getElementById("reg-name").value,
+          license: document.getElementById("reg-license").value,
+          email: document.getElementById("reg-email").value,
+          password: document.getElementById("reg-pass").value,
+          phone: "+977" + document.getElementById("reg-phone").value,
+          city: document.getElementById("reg-city").value,
+        };
+        const res = await Auth.registerHospital(data);
+        if (!res.ok) {
+          const el = document.getElementById("reg-error");
+          el.style.display = "flex";
+          el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${res.msg}`;
+          return;
+        }
+        const loginRes = await Auth.loginHospital(data.email, data.password);
+        if (loginRes.ok) {
+          currentHospital = loginRes.hospital;
+          showDashboard();
+          showNotif(
+            `${currentHospital.name} registered and auto-verified! ✅`,
+            "success",
+          );
+        }
+      }
+
+      function handleLogout() {
+        Auth.logout();
+      }
+
+      function showDashboard() {
+        document.getElementById("auth-panel").style.display = "none";
+        document.getElementById("dashboard-panel").style.display = "block";
+        document.getElementById("dash-title").textContent =
+          currentHospital.name;
+        document.getElementById("dash-sub").textContent =
+          `${currentHospital.city} · Dashboard`;
+        document.getElementById("req-city").value = currentHospital.city;
+        refreshDashboardData();
+      }
+
+      async function refreshDashboardData() {
+        myRequests = await Matching.getHospitalRequests();
+        for (let req of myRequests) {
+          if (req.status !== "Fulfilled" && req.status !== "Closed") {
+            const dash = await Matching.getHospitalDashboard(req.id);
+            if (dash.ok) {
+              req.responses = dash.data.responses;
+            }
+          }
+        }
+        renderActiveRequests();
+        updateStats();
+      }
+
+      function updateStats() {
+        const active = myRequests.filter(
+          (r) => r.status !== "Fulfilled" && r.status !== "Closed",
+        );
+        const totalResp = active.reduce(
+          (sum, r) => sum + (r.responses ? r.responses.length : 0),
+          0,
+        );
+        document.getElementById("stat-active").textContent = active.length;
+        document.getElementById("stat-responders").textContent = totalResp;
+        document.getElementById("stat-total").textContent = myRequests.length;
+      }
+
+      async function handleCreateRequest(e) {
+        e.preventDefault();
+        const data = {
+          hospitalId: currentHospital.id,
+          hospitalName: currentHospital.name,
+          blood_type: document.getElementById("req-blood").value,
+          quantity: document.getElementById("req-qty").value,
+          urgency: document.getElementById("req-urgency").value,
+          city: currentHospital.city,
+          patient_details: document.getElementById("req-condition").value,
+        };
+
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+        const res = await Matching.createRequest(data);
+        if (!res.ok) {
+          showNotif(res.msg, "error");
+          btn.disabled = false;
+          btn.innerHTML =
+            '<i class="fas fa-siren"></i> 🚨 CREATE EMERGENCY REQUEST';
+          return;
+        }
+
+        const matchedDonors = res.data.matchedDonors;
+        const el = document.getElementById("create-success");
+        el.style.display = "flex";
+        el.innerHTML = `<i class="fas fa-check-circle"></i> Request created! <strong>${matchedDonors} donor${
+          matchedDonors !== 1 ? "s" : ""
+        }</strong> with blood type ${data.blood_type} in ${data.city} alerted.`;
+        e.target.reset();
+        document.getElementById("req-city").value = currentHospital.city;
+        setTimeout(() => (el.style.display = "none"), 6000);
+
+        await refreshDashboardData();
+        showNotif("🚨 Emergency request sent!", "success");
+
+        btn.disabled = false;
+        btn.innerHTML =
+          '<i class="fas fa-siren"></i> 🚨 CREATE EMERGENCY REQUEST';
+      }
+
+      function renderActiveRequests() {
+        const active = myRequests.filter(
+          (r) => r.status !== "Fulfilled" && r.status !== "Closed",
+        );
+        const past = myRequests.filter(
+          (r) => r.status === "Fulfilled" || r.status === "Closed",
+        );
+        const box = document.getElementById("active-requests-container");
+        const pastBox = document.getElementById("past-requests-container");
+
+        if (active.length === 0) {
+          box.innerHTML =
+            '<div class="empty-state card"><i class="fas fa-check-circle" style="color:var(--success);"></i><h4>No active requests</h4><p>Create a new blood request using the form on the left.</p></div>';
+        } else {
+          box.innerHTML = active
+            .map((req) => {
+              const responders = req.responses || [];
+              const isExpanded = expandedRequestId === req.id;
+              return (
+                '<div class="request-card ' +
+                (req.urgency ? req.urgency.toLowerCase() : "normal") +
+                '" style="margin-bottom:1rem;">' +
+                '<div class="request-card-header">' +
+                bloodBadgeHTML(req.bloodType, "sm") +
+                '<div style="flex:1;">' +
+                '<div style="font-weight:700; font-family:var(--font-heading); font-size:0.95rem;">' +
+                req.bloodType +
+                " Blood Needed</div>" +
+                '<div style="font-size:0.78rem; color:var(--gray-600);">' +
+                req.quantity +
+                "</div>" +
+                "</div>" +
+                urgencyBadgeHTML(req.urgency || "Normal") +
+                '<span class="status-badge active"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Active</span>' +
+                "</div>" +
+                '<div class="request-card-body">' +
+                '<p style="font-size:0.88rem; color:var(--gray-700); margin-bottom:0.75rem;">' +
+                req.patientCondition +
+                "</p>" +
+                '<div class="flex gap-2" style="flex-wrap:wrap;">' +
+                '<span class="chip"><i class="fas fa-users"></i> <strong>' +
+                responders.length +
+                "</strong> Responder" +
+                (responders.length !== 1 ? "s" : "") +
+                "</span>" +
+                '<span class="chip"><i class="fas fa-location-dot"></i> ' +
+                req.city +
+                "</span>" +
+                "</div>" +
+                "</div>" +
+                '<div class="request-card-footer">' +
+                '<div style="display:flex; gap:1rem; justify-content:space-between; align-items:center; flex-wrap:wrap;">' +
+                '<button class="btn btn-outline btn-sm" onclick="toggleResponders(' +
+                req.id +
+                ')">' +
+                '<i class="fas fa-users"></i> ' +
+                (isExpanded ? "Hide" : "View") +
+                " Responders (" +
+                responders.length +
+                ")" +
+                "</button>" +
+                '<button class="btn btn-sm" style="background:var(--gray-100); color:var(--gray-600); border-radius:var(--radius-full); border:none; cursor:pointer;" onclick="markFulfilled(' +
+                req.id +
+                ')">' +
+                '<i class="fas fa-check"></i> Mark Fulfilled' +
+                "</button>" +
+                "</div>" +
+                (isExpanded ? renderRespondersTable(responders, req.id) : "") +
+                "</div>" +
+                "</div>"
+              );
+            })
+            .join("");
+        }
+
+        if (past.length === 0) {
+          pastBox.innerHTML =
+            '<div class="card"><p style="color:var(--gray-400); font-size:0.88rem; text-align:center; padding:0.75rem;">No past requests yet.</p></div>';
+        } else {
+          pastBox.innerHTML = past
+            .slice(0, 5)
+            .map(
+              (req) =>
+                '<div class="card" style="margin-bottom:0.75rem; display:flex; align-items:center; gap:1rem;">' +
+                bloodBadgeHTML(req.bloodType, "sm") +
+                '<div style="flex:1;">' +
+                '<div style="font-weight:600; font-size:0.88rem;">' +
+                req.bloodType +
+                " - " +
+                req.quantity +
+                "</div>" +
+                '<div style="font-size:0.78rem; color:var(--gray-600);">' +
+                req.status +
+                "</div>" +
+                "</div>" +
+                '<span class="status-badge fulfilled">Fulfilled</span>' +
+                "</div>",
+            )
+            .join("");
+        }
+      }
+
+      function renderRespondersTable(responders, reqId) {
+        if (responders.length === 0) {
+          return `<div style="margin-top:1rem; padding:1.5rem; background:var(--gray-50); border-radius:var(--radius-sm); text-align:center;">
+        <i class="fas fa-hourglass-half" style="color:var(--gray-400); margin-bottom:0.5rem;"></i>
+        <p style="font-size:0.88rem; color:var(--gray-400);">No donors have responded yet. Matching donors can see this request in their dashboard.</p>
+      </div>`;
+        }
+        return `
+      <div class="responders-panel" style="margin-top:1rem;">
+        <div class="responders-panel-header">
+          <span><i class="fas fa-users"></i> Donor Responders — Request #${reqId}</span>
+          <span>${responders.length} ready to donate</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Donor</th><th>Blood Type</th><th>Phone</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              ${responders
+                .map(
+                  (d) => `
+                <tr>
+                  <td><strong>${d.name}</strong></td>
+                  <td>${bloodBadgeHTML(d.blood_type, "sm")}</td>
+                  <td><code>${d.phone}</code></td>
+                  <td><span class="status-badge active"><span class="dot dot-green"></span> Coming</span></td>
+                  <td><button class="btn btn-primary btn-sm" onclick="contactDonor('${d.name}', '${d.phone}')">
+                    <i class="fas fa-phone"></i> Contact
+                  </button></td>
+                </tr>`,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+      }
+
+      function toggleResponders(reqId) {
+        expandedRequestId = expandedRequestId === reqId ? null : reqId;
+        renderActiveRequests();
+      }
+
+      async function markFulfilled(reqId) {
+        await Matching.markFulfilled(reqId);
+        showNotif("Request marked as fulfilled. Great work! 🙌", "success");
+        refreshDashboardData();
+      }
+
+      function contactDonor(name, phone) {
+        showNotif(`📞 Contacting ${name} at ${phone}`, "success");
+        alert(
+          `Contact Donor:\n\nName: ${name}\nPhone: ${phone}\n\nIn production, this would initiate a masked call or send a notification.`,
+        );
+      }
+    </script>
+  </body>
+</html>
