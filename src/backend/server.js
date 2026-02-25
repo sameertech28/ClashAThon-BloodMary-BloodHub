@@ -91,8 +91,10 @@ app.post("/register-donor", async (req, res) => {
 
 //register-hospital
 app.post("/register-hospital", async (req, res) => {
-  const { name, email, phone, city, password, address } = req.body;
+  // license is accepted from frontend but not required by the DB schema
+  const { name, license, email, phone, city, password, address } = req.body;
 
+  console.log("here data on backend : ", req.body);
   if (!name || !email || !password || !city) {
     return res.status(400).json({ error: "Missing required fields" });
   }
@@ -109,7 +111,10 @@ app.post("/register-hospital", async (req, res) => {
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY")
       return res.status(409).json({ error: "Email already exists" });
-    res.status(500).json({ error: "Server error" });
+    console.error("Register hospital error:", err);
+    res
+      .status(500)
+      .json({ error: err.message || "Server error during registration" });
   }
 });
 
@@ -150,35 +155,10 @@ app.post("/login", async (req, res) => {
       { expiresIn: "24h" },
     );
 
-    // Shape user object sent to frontend so dashboards can use city/phone/etc.
-    let safeUser;
-    if (role === "donor") {
-      safeUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        blood_type: user.blood_type,
-        city: user.city,
-        phone: user.phone,
-        available: !!user.available,
-      };
-    } else if (role === "hospital") {
-      safeUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        city: user.city,
-        phone: user.phone,
-      };
-    } else {
-      // Fallback (should not happen)
-      safeUser = { id: user.id, name: user.name, email: user.email };
-    }
-
     res.json({
       token,
       role,
-      user: safeUser,
+      user: { id: user.id, name: user.name || user.name, email: user.email },
     });
   } catch (err) {
     console.error(err);
@@ -206,11 +186,28 @@ app.post("/create-request", authenticateToken, async (req, res) => {
     return res.status(400).json({ error: "Blood type and city required" });
 
   try {
-    // Normalize quantity in case frontend sends values like "2 units"
+    // Normalize quantity (handle values like "2" or "2 units")
     let normalizedQuantity = quantity;
     if (typeof normalizedQuantity === "string") {
       const match = normalizedQuantity.match(/\d+/);
       normalizedQuantity = match ? parseInt(match[0], 10) : 1;
+    }
+
+    // Normalize urgency for ENUMs like ('critical','urgent','normal')
+    let normalizedUrgency = urgency;
+    if (typeof normalizedUrgency === "string") {
+      const lower = normalizedUrgency.toLowerCase();
+      if (["critical", "urgent", "normal"].includes(lower)) {
+        normalizedUrgency = lower;
+      } else {
+        normalizedUrgency = lower;
+      }
+    }
+
+    // Cap patient_details length to avoid data truncation on VARCHAR columns
+    let safeDetails = patient_details == null ? null : String(patient_details);
+    if (safeDetails && safeDetails.length > 255) {
+      safeDetails = safeDetails.slice(0, 255);
     }
 
     const [result] = await pool.query(
@@ -219,9 +216,9 @@ app.post("/create-request", authenticateToken, async (req, res) => {
         hospital_id,
         blood_type,
         normalizedQuantity,
-        urgency,
+        normalizedUrgency,
         city,
-        patient_details || null,
+        safeDetails,
       ],
     );
 
@@ -380,19 +377,8 @@ app.get(
   },
 );
 
-// GET /requests/hospital - Hospital only
-app.get("/requests/hospital", authenticateToken, async (req, res) => {
-  if (req.user.role !== "hospital") return res.status(403).json({ error: "Only hospitals can view their requests" });
-  try {
-    const [requests] = await pool.query(
-      "SELECT * FROM requests WHERE hospital_id = ? ORDER BY id DESC",
-      [req.user.id]
-    );
-    res.json(requests);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch requests" });
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
 // GET /requests/donor - Donor only
