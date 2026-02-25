@@ -311,8 +311,9 @@
                       <select id="req-urgency" required>
                         <option value="">Urgency level</option>
                         <option>Critical</option>
-                        <option>Urgent</option>
-                        <option>Normal</option>
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
                       </select>
                     </div>
                   </div>
@@ -431,7 +432,7 @@
         city: document.getElementById("reg-city").value,
       };
       console.log("here data: ", data);
-      const res = await Auths.registerHospital(data);
+      const res = await Auth.registerHospital(data);
       console.log("here res: ", res);
       console.log("check res: ", res.ok);
       if (!res.ok) {
@@ -478,8 +479,8 @@
       for (let req of myRequests) {
         if (req.status !== "Fulfilled" && req.status !== "Closed") {
           const dash = await Matching.getHospitalDashboard(req.id);
-          if (dash.ok) {
-            req.responses = dash.data.responses;
+          if (dash) {
+            req.responses = dash.responses;
           }
         }
       }
@@ -701,10 +702,6 @@
       );
     }
   </script>
-</body>
-
-</html>
-ipt>
 </body>
 
 </html>

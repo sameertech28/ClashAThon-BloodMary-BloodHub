@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
 const requestRoutes = require("./src/routes/requestRoutes");
+const chatRoutes = require("./src/routes/chatRoutes");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use("/", authRoutes);
 app.use("/", requestRoutes);
+app.use("/", chatRoutes);
 
 // Health check
 app.get("/", (req, res) => {

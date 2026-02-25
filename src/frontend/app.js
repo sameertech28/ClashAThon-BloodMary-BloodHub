@@ -16,117 +16,45 @@ const SEED_REQUESTS = [];
 // All data lives in localStorage so it is shared across every page.
 // Hospital creates request → stored → donor sees it on any page.
 
-const LS = {
-  KEY_DONORS: "bh_v4_donors",
-  KEY_HOSPITALS: "bh_v4_hospitals",
-  KEY_REQUESTS: "bh_v4_requests",
-  KEY_IDS: "bh_v4_ids",
-
-  load() {
-    // If localStorage has data use it, otherwise seed with defaults
-    const d = localStorage.getItem(this.KEY_DONORS);
-    const h = localStorage.getItem(this.KEY_HOSPITALS);
-    const r = localStorage.getItem(this.KEY_REQUESTS);
-
-    donors = d ? JSON.parse(d) : JSON.parse(JSON.stringify(SEED_DONORS));
-    hospitals = h ? JSON.parse(h) : JSON.parse(JSON.stringify(SEED_HOSPITALS));
-    bloodRequests = r
-      ? JSON.parse(r)
-      : JSON.parse(JSON.stringify(SEED_REQUESTS));
-
-    // IDs
-    const ids = localStorage.getItem(this.KEY_IDS);
-    if (ids) {
-      const parsed = JSON.parse(ids);
-      nextDonorId = parsed.nextDonorId;
-      nextHospitalId = parsed.nextHospitalId;
-      nextRequestId = parsed.nextRequestId;
-    } else {
-      nextDonorId = 1;
-      nextHospitalId = 1;
-      nextRequestId = 100;
-    }
-
-    // Seed first-time only
-    if (!d) this.saveDonors();
-    if (!h) this.saveHospitals();
-    if (!r) this.saveRequests();
-  },
-
-  saveDonors() {
-    localStorage.setItem(this.KEY_DONORS, JSON.stringify(donors));
-    this._saveIds();
-  },
-  saveHospitals() {
-    localStorage.setItem(this.KEY_HOSPITALS, JSON.stringify(hospitals));
-    this._saveIds();
-  },
-  saveRequests() {
-    localStorage.setItem(this.KEY_REQUESTS, JSON.stringify(bloodRequests));
-    this._saveIds();
-  },
-  _saveIds() {
-    localStorage.setItem(
-      this.KEY_IDS,
-      JSON.stringify({ nextDonorId, nextHospitalId, nextRequestId }),
-    );
-  },
-
-  // Dev helper — call LS.reset() in console to wipe all data and start fresh
-  reset() {
-    [
-      this.KEY_DONORS,
-      this.KEY_HOSPITALS,
-      this.KEY_REQUESTS,
-      this.KEY_IDS,
-    ].forEach((k) => localStorage.removeItem(k));
-    sessionStorage.clear();
-    location.reload();
-  },
-};
-
-// ─── LIVE DATA ARRAYS (populated from localStorage on load) ──────────────
-let donors = [];
-let hospitals = [];
-let bloodRequests = [];
-let nextDonorId = 1;
-let nextHospitalId = 1;
-let nextRequestId = 100;
-
-// Initialise immediately
-LS.load();
+// ─── LIVE DATA ARRAYS (Removed as data now comes from API) ────────────────
+const donors = [];
+const hospitals = [];
+const bloodRequests = [];
 
 // ─── SESSION (tab-level, does not persist across browser close) ───────────
 const Session = {
-  setDonor(donor) {
-    sessionStorage.setItem("bh_donor_session", JSON.stringify(donor));
+  setToken(token) {
+    localStorage.setItem("bh_token", token);
   },
-  setHospital(h) {
-    sessionStorage.setItem("bh_hospital_session", JSON.stringify(h));
+  getToken() {
+    return localStorage.getItem("bh_token");
   },
-  getDonor() {
-    const d = sessionStorage.getItem("bh_donor_session");
-    return d ? JSON.parse(d) : null;
+  setUser(user, role) {
+    localStorage.setItem("bh_user", JSON.stringify(user));
+    localStorage.setItem("bh_role", role);
   },
-  getHospital() {
-    const h = sessionStorage.getItem("bh_hospital_session");
-    return h ? JSON.parse(h) : null;
+  getUser() {
+    const user = localStorage.getItem("bh_user");
+    return user ? JSON.parse(user) : null;
   },
-  clearDonor() {
+  getRole() {
+    return localStorage.getItem("bh_role");
+  },
+  clear() {
+    localStorage.removeItem("bh_token");
+    localStorage.removeItem("bh_user");
+    localStorage.removeItem("bh_role");
+    // Also clear old session storage if it exists
     sessionStorage.removeItem("bh_donor_session");
-  },
-  clearHospital() {
     sessionStorage.removeItem("bh_hospital_session");
   },
-  // Get the live donor object (re-read from in-memory array which was loaded from localStorage)
-  liveDonor() {
-    const s = this.getDonor();
-    return s ? donors.find((d) => d.id === s.id) || s : null;
+  getAuthHeaders() {
+    const token = this.getToken();
+    return token ? { "Authorization": `Bearer ${token}` } : {};
   },
-  liveHospital() {
-    const s = this.getHospital();
-    return s ? hospitals.find((h) => h.id === s.id) || s : null;
-  },
+  // Legacy support for scripts expecting liveHospital/liveDonor
+  liveDonor() { return this.getUser(); },
+  liveHospital() { return this.getUser(); }
 };
 
 // ─── VALIDATION ───────────────────────────────────────────────────────────
@@ -160,181 +88,271 @@ const Validation = {
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────
 const Auth = {
-  loginDonor(email, password) {
-    const d = donors.find((x) => x.email === email && x.password === password);
-    if (!d) return { ok: false, msg: "Invalid email or password." };
-    Session.setDonor(d);
-    return { ok: true, donor: d };
-  },
-  loginHospital(email, password) {
-    const h = hospitals.find(
-      (x) => x.email === email && x.password === password,
-    );
-    if (!h) return { ok: false, msg: "Invalid email or password." };
-    if (!h.verified)
-      return {
-        ok: false,
-        msg: "Hospital not yet verified. Please wait for approval.",
-      };
-    Session.setHospital(h);
-    return { ok: true, hospital: h };
-  },
-  registerDonor(data) {
-    if (donors.find((x) => x.email === data.email))
-      return { ok: false, msg: "Email already registered." };
-    const err = Validation.getError(data);
-    if (err) return { ok: false, msg: err };
-    const d = {
-      id: nextDonorId++,
-      ...data,
-      available: true,
-      donations: [],
-      responses: [],
-    };
-    donors.push(d);
-    LS.saveDonors(); // ← persist immediately
-    Session.setDonor(d);
-    return { ok: true, donor: d };
+  async _post(endpoint, data) {
+    try {
+      const res = await fetch(`${backendURL}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) return { ok: false, msg: result.error || "Request failed" };
+      return { ok: true, data: result };
+    } catch (e) {
+      console.error(e);
+      return { ok: false, msg: "Network error. Is the backend running?" };
+    }
   },
 
-  registerHospital(data) {
-    if (hospitals.find((x) => x.email === data.email))
-      return { ok: false, msg: "Email already registered." };
-    const err = Validation.getError(data);
-    if (err) return { ok: false, msg: err };
-    const h = { id: nextHospitalId++, ...data, verified: true };
-    hospitals.push(h);
-    LS.saveHospitals(); // ← persist immediately
-    Session.setHospital(h);
-    return { ok: true, hospital: h };
+  async loginDonor(email, password) {
+    const res = await this._post("/login", { email, password });
+    if (res.ok) {
+      if (res.data.role !== "donor") return { ok: false, msg: "Invalid credentials." };
+      Session.setToken(res.data.token);
+      Session.setUser(res.data.user, res.data.role);
+      return { ok: true, donor: res.data.user };
+    }
+    return res;
   },
+
+  async loginHospital(email, password) {
+    const res = await this._post("/login", { email, password });
+    if (res.ok) {
+      if (res.data.role !== "hospital") return { ok: false, msg: "Invalid credentials." };
+      Session.setToken(res.data.token);
+      Session.setUser(res.data.user, res.data.role);
+      return { ok: true, hospital: res.data.user };
+    }
+    return res;
+  },
+
+  async registerDonor(data) {
+    console.log("register donor data", data);
+    const res = await this._post("/register-donor", data);
+    if (res.ok) {
+      // Auto login after registration
+      return this.loginDonor(data.email, data.password);
+    }
+    return res;
+  },
+
+  async registerHospital(data) {
+    const res = await this._post("/register-hospital", data);
+    if (res.ok) {
+      // Auto login after registration
+      return this.loginHospital(data.email, data.password);
+    }
+    return res;
+  },
+
   logout() {
-    // Clear any active donor/hospital sessions and return to landing page
-    Session.clearDonor();
-    Session.clearHospital();
+    Session.clear();
     window.location.href = "index.html";
   },
 };
 
-const Auths = {
-  registerHospital: async function (data) {
-    console.log("here data on app : ", data);
-    // Frontend checks (keep these)
-    if (hospitals.find((x) => x.email === data.email)) {
-      return { ok: false, msg: "Email already registered." };
-    }
-
-    const err = Validation.getError(data);
-    if (err) return { ok: false, msg: err };
-
-    try {
-      // 🔹 Send data to backend
-      const res = await axios.post(`${backendURL}/register-hospital`, data);
-
-      // Expecting backend to return created hospital
-      const hospitalFromServer = res.data;
-
-      const h = {
-        id: hospitalFromServer.id ?? nextHospitalId++,
-        ...hospitalFromServer,
-        verified: hospitalFromServer.verified ?? true,
-      };
-
-      // 🔹 Keep localStorage in sync (important for your app)
-      hospitals.push(h);
-      LS.saveHospitals();
-      Session.setHospital(h);
-
-      return { ok: true, hospital: h };
-    } catch (error) {
-      // 🔹 Clean error handling
-      const msg =
-        error.response?.data?.message ||
-        error.message ||
-        "Hospital registration failed.";
-
-      return { ok: false, msg };
-    }
-  },
-}
 // ─── MATCHING ALGORITHM ───────────────────────────────────────────────────
 const Matching = {
-  /**
-   * Get all ACTIVE requests visible to a donor.
-   * Rules: same CITY + same BLOOD TYPE.
-   * Which hospital issued the request is irrelevant.
-   */
-  getRequestsForDonor(donor) {
-    if (!donor.available) return [];
-    return bloodRequests.filter(
-      (r) =>
-        r.city === donor.city &&
-        r.bloodType === donor.bloodType &&
-        r.status === "active",
-    );
-  },
+  async getRequestsForDonor() {
+    try {
+      const res = await fetch(`${backendURL}/requests/donor`, {
+        headers: { ...Session.getAuthHeaders() }
+      });
+      const result = await res.json();
+      if (!res.ok) return [];
 
-  getDonorsForCity(city, bloodType) {
-    return donors.filter(
-      (d) => d.city === city && d.bloodType === bloodType && d.available,
-    );
-  },
-
-  getHospitalRequests(hospitalId) {
-    // All requests created by this hospital
-    return bloodRequests.filter((r) => r.hospitalId === hospitalId);
-  },
-
-  getRespondersForRequest(requestId) {
-    const req = bloodRequests.find((r) => r.id === requestId);
-    if (!req) return [];
-    return donors.filter((d) => req.responders.includes(d.id));
-  },
-
-  respondToRequest(donorId, requestId) {
-    // Always re-read from live array (could have been updated by another page)
-    const req = bloodRequests.find((r) => r.id === requestId);
-    const donor = donors.find((d) => d.id === donorId);
-    if (!req || !donor)
-      return { ok: false, msg: "Request or donor not found." };
-    if (req.responders.includes(donorId))
-      return { ok: false, msg: "Already responded." };
-
-    req.responders.push(donorId);
-    if (!donor.responses.includes(requestId)) donor.responses.push(requestId);
-
-    LS.saveRequests(); // ← hospital will see this responder in real time
-    LS.saveDonors();
-    Session.setDonor(donor);
-    return { ok: true };
-  },
-
-  createRequest(data) {
-    const req = {
-      id: nextRequestId++,
-      ...data,
-      status: "active",
-      timestamp: new Date().toISOString(),
-      responders: [],
-    };
-    bloodRequests.unshift(req);
-    LS.saveRequests(); // ← ALL donor pages will now see this request
-    return req;
-  },
-
-  markFulfilled(requestId) {
-    const req = bloodRequests.find((r) => r.id === requestId);
-    if (req) {
-      req.status = "fulfilled";
-      LS.saveRequests();
+      // Map to format that donor.html expects
+      return result.requests.map(r => ({
+        ...r,
+        bloodType: r.blood_type,
+        hospitalName: r.hospitalName,
+        patientCondition: r.patientCondition || r.patient_details,
+        responders: result.respondedIds.includes(r.id) ? [Session.getUser().id] : []
+      }));
+    } catch (e) {
+      console.error(e);
+      return [];
     }
   },
 
-  getMatchCountPreview(bloodType, city) {
-    return donors.filter(
-      (d) => d.bloodType === bloodType && d.city === city && d.available,
-    );
+  async getHospitalRequests() {
+    try {
+      const res = await fetch(`${backendURL}/requests/hospital`, {
+        headers: { ...Session.getAuthHeaders() }
+      });
+      const result = await res.json();
+      if (!res.ok) return [];
+      return result.map(r => ({
+        ...r,
+        bloodType: r.blood_type,
+        patientCondition: r.patient_details
+      }));
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
   },
+
+  async getHospitalDashboard(requestId) {
+    try {
+      const res = await fetch(`${backendURL}/hospital-dashboard/${requestId}`, {
+        headers: { ...Session.getAuthHeaders() }
+      });
+      const result = await res.json();
+      if (!res.ok) return null;
+      return result;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  },
+
+  async respondToRequest(data) {
+    try {
+      const res = await fetch(`${backendURL}/respond`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...Session.getAuthHeaders()
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) return { ok: false, msg: result.error || "failed" };
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      return { ok: false, msg: "Network error" };
+    }
+  },
+
+  async createRequest(data) {
+    try {
+      const res = await fetch(`${backendURL}/create-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...Session.getAuthHeaders()
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) return { ok: false, msg: result.error || "Failed" };
+      return { ok: true, data: result };
+    } catch (e) {
+      console.error(e);
+      return { ok: false, msg: "Network error" };
+    }
+  },
+
+  async markFulfilled(requestId) {
+    try {
+      const res = await fetch(`${backendURL}/requests/${requestId}/fulfill`, {
+        method: "POST",
+        headers: { ...Session.getAuthHeaders() }
+      });
+      return res.ok;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+};
+
+// ─── CHATBOT ──────────────────────────────────────────────────────────────
+const Chatbot = {
+  seedData: [
+    { q: "hi", a: "Hello! Welcome to BLOODHUB. How can I help you today?" },
+    { q: "how to donate", a: "To donate blood, register as a donor, check matching requests in your city, and click 'I'M COMING' to alert the hospital." },
+    { q: "emergency", a: "If you have a medical emergency, please contact your local hospital directly or call the emergency hotline at +977-1-XXXXXXXX." },
+    { q: "is it safe", a: "Yes, blood donation is very safe. We ensure all donors meet health eligibility criteria before donating." },
+    { q: "hospital", a: "Hospitals can register on our platform to create emergency blood requests and instantly connect with verified donors." }
+  ],
+
+  init() {
+    this.injectHTML();
+    this.bindEvents();
+    this.addMessage("bot", "Hi! I'm your BLOODHUB assistant. Ask me anything about blood donation!");
+  },
+
+  injectHTML() {
+    const html = `
+      <div class="chatbot-fab" id="chatbot-fab">
+        <i class="fas fa-comment-dots"></i>
+      </div>
+      <div class="chatbot-window" id="chatbot-window">
+        <div class="chatbot-header">
+          <h3><i class="fas fa-droplet"></i> BLOODHUB AI</h3>
+          <div class="chatbot-close" id="chatbot-close"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chat-typing" id="chat-typing" style="display: none;">AI is typing...</div>
+        <form class="chatbot-input-area" id="chatbot-form">
+          <input type="text" id="chatbot-input" placeholder="Type a message..." autocomplete="off">
+          <button type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", html);
+  },
+
+  bindEvents() {
+    const fab = document.getElementById("chatbot-fab");
+    const win = document.getElementById("chatbot-window");
+    const close = document.getElementById("chatbot-close");
+    const form = document.getElementById("chatbot-form");
+    const input = document.getElementById("chatbot-input");
+
+    fab.onclick = () => win.classList.add("active");
+    close.onclick = () => win.classList.remove("active");
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      this.addMessage("user", msg);
+      input.value = "";
+      this.handleResponse(msg);
+    };
+  },
+
+  addMessage(type, text) {
+    const container = document.getElementById("chatbot-messages");
+    if (!container) return;
+    const div = document.createElement("div");
+    div.className = `chat-msg ${type}`;
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  },
+
+  async handleResponse(userMsg) {
+    const typing = document.getElementById("chat-typing");
+    if (typing) typing.style.display = "block";
+
+    try {
+      const res = await fetch(`${backendURL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg })
+      });
+
+      if (typing) typing.style.display = "none";
+
+      if (res.ok) {
+        const data = await res.json();
+        this.addMessage("bot", data.response);
+      } else {
+        const data = await res.json();
+        this.addMessage("bot", data.error || "I'm having trouble connecting to my brain right now. Please try again later!");
+      }
+    } catch (e) {
+      if (typing) typing.style.display = "none";
+      console.error(e);
+      this.addMessage("bot", "Network error. I'm currently offline.");
+    }
+  }
 };
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────
@@ -420,7 +438,10 @@ function buildNav() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", buildNav);
+document.addEventListener("DOMContentLoaded", () => {
+  buildNav();
+  Chatbot.init();
+});
 
 // ─── EMAIL NOTIFIER (EmailJS) ────────────────────────────────────────────────
 // Sends real notification emails to matching donors when a hospital creates a request.
