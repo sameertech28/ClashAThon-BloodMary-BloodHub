@@ -63,7 +63,7 @@ const getRequestsForDonor = async (req, res) => {
         const { blood_type, city } = donorInfo[0];
 
         const [requests] = await pool.query(
-            `SELECT r.*, h.name as hospitalName, r.patient_details as patientCondition 
+            `SELECT r.id, r.hospital_id, r.blood_type as bloodType, r.quantity, r.urgency, r.city, r.patient_details as patientCondition, r.status, r.created_at, h.name as hospitalName 
        FROM requests r 
        JOIN hospitals h ON r.hospital_id = h.id 
        WHERE r.blood_type = ? AND r.city = ? 
@@ -79,9 +79,35 @@ const getRequestsForDonor = async (req, res) => {
 
         res.json({ requests, respondedIds });
     } catch (err) {
-        console.error(err);
+        console.error("Get Matching Requests Error:", {
+            donor_id: req.user.id,
+            error: err.message,
+            stack: err.stack
+        });
         res.status(500).json({ error: "Failed to fetch requests" });
     }
 };
 
-module.exports = { respondToRequest, getRequestsForDonor };
+const getDonationHistory = async (req, res) => {
+    if (req.user.role !== "donor")
+        return res.status(403).json({ error: "Only donors can view their history" });
+
+    try {
+        const [history] = await pool.query(
+            `SELECT r.id as request_id, h.name as hospitalName, r.blood_type, r.quantity, r.city, res.responded_at as donationDate
+       FROM responses res
+       JOIN requests r ON res.request_id = r.id
+       JOIN hospitals h ON r.hospital_id = h.id
+       WHERE res.donor_id = ? AND res.status = 'Completed'
+       ORDER BY res.responded_at DESC`,
+            [req.user.id]
+        );
+        console.log(history);
+        res.json(history);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch donation history" });
+    }
+};
+
+module.exports = { respondToRequest, getRequestsForDonor, getDonationHistory };

@@ -1834,3 +1834,133 @@ tr:hover td {
     height: 70vh;
   }
 }
+
+/* =============================================
+   ADMIN DASHBOARD STYLES
+   ============================================= */
+
+/* Tab Navigation */
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--gray-200);
+  padding-bottom: 0;
+}
+
+.admin-tab {
+  padding: 0.85rem 1.5rem;
+  background: none;
+  border: none;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--gray-600);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-tab:hover {
+  color: var(--primary);
+}
+
+.admin-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-badge {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  min-width: 20px;
+  text-align: center;
+}
+
+.admin-tab.active .tab-badge {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Admin Message Card */
+.admin-message-card.unread {
+  background: #fffbfb;
+}
+
+/* =============================================
+   PROFILE DETAILS GRID
+   ============================================= */
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.profile-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+
+.profile-detail-item:hover {
+  background: #fff;
+  border-color: var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-detail-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gray-600);
+  font-size: 0.95rem;
+}
+
+.profile-detail-label {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-family: var(--font-heading);
+}
+
+.profile-detail-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-top: 0.15rem;
+}
+
+/* Responsive admin tabs */
+@media (max-width: 600px) {
+  .admin-tabs {
+    flex-wrap: wrap;
+  }
+  .admin-tab {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+}

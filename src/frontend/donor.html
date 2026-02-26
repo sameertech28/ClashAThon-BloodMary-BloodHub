@@ -236,8 +236,13 @@
               <div class="profile-name" id="dash-pname"></div>
               <div class="profile-sub" id="dash-pcity"></div>
               <div class="profile-sub" id="dash-pphone" style="margin-top: 2px"></div>
+              <div class="profile-sub" id="dash-page" style="margin-top: 2px; font-weight: 600; color: var(--primary);">
+              </div>
             </div>
-            <div style="margin-left: auto">
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 1.5rem;">
+              <button class="btn btn-outline btn-sm" onclick="toggleProfileDetails()">
+                <i class="fas fa-user"></i> My Profile
+              </button>
               <div class="toggle-wrapper">
                 <label class="toggle-switch">
                   <input type="checkbox" id="avail-toggle" onchange="toggleAvailability()" checked />
@@ -245,13 +250,24 @@
                 </label>
                 <span class="toggle-label" id="avail-label">Available to Donate</span>
               </div>
-              <p style="
-                    font-size: 0.78rem;
-                    color: var(--gray-400);
-                    margin-top: 4px;
-                  ">
+              <p style="font-size: 0.78rem; color: var(--gray-400); margin-top: 4px;">
                 Turn off to pause notifications
               </p>
+            </div>
+          </div>
+
+          <!-- Profile Details (hidden by default) -->
+          <div id="donor-profile-details" class="card mb-4"
+            style="display: none; border-top: 4px solid var(--primary);">
+            <div class="flex-between mb-3">
+              <h3><i class="fas fa-id-card" style="color: var(--primary)"></i> My Profile Details</h3>
+              <button class="btn btn-sm" onclick="toggleProfileDetails()"
+                style="background:var(--gray-100);color:var(--gray-600);border:none;border-radius:var(--radius-full);cursor:pointer;">
+                <i class="fas fa-times"></i> Close
+              </button>
+            </div>
+            <div class="profile-details-grid" id="profile-details-content">
+              <!-- Filled by JS -->
             </div>
           </div>
 
@@ -286,16 +302,18 @@
                 <i class="fas fa-history" style="color: var(--info)"></i>
                 Donation History
               </h3>
-              <div class="card">
-                <p style="
-                      color: var(--gray-400);
-                      font-size: 0.9rem;
-                      text-align: center;
-                      padding: 1rem;
-                    ">
-                  No donation records yet. Your completed donations will
-                  appear here.
-                </p>
+              <div id="donation-history-container">
+                <div class="card">
+                  <p style="
+                        color: var(--gray-400);
+                        font-size: 0.9rem;
+                        text-align: center;
+                        padding: 1rem;
+                      ">
+                    No donation records yet. Your completed donations will
+                    appear here.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -424,6 +442,7 @@
         email: document.getElementById("reg-email").value,
         password: document.getElementById("reg-pass").value,
         phone: "+977" + document.getElementById("reg-phone").value,
+        age: document.getElementById("reg-age").value,
         blood_type: document.getElementById("reg-blood").value,
         city: document.getElementById("reg-city").value,
       };
@@ -435,16 +454,13 @@
         return;
       }
 
-      // Auto sign-in
-      const loginRes = await Auth.loginDonor(data.email, data.password);
-      if (loginRes.ok) {
-        currentDonor = loginRes.donor;
-        showDashboard();
-        showNotif(
-          `Welcome, ${currentDonor.name.split(" ")[0]}! You are now a BLOODHUB Hero! 🎉`,
-          "success",
-        );
-      }
+      // Show pending approval message
+      const el = document.getElementById("reg-error");
+      el.style.display = "flex";
+      el.className = "alert alert-success";
+      el.innerHTML = `<i class="fas fa-check-circle"></i> Registration successful! Your account is pending admin approval. You will be able to log in once the admin verifies your registration.`;
+      e.target.reset();
+      showNotif("Registration submitted! Awaiting admin approval. 🕐", "success");
     }
 
     // ── Logout ──────────────────────────────────────────────
@@ -462,8 +478,10 @@
 
     async function refreshDashboardData() {
       currentRequests = await Matching.getRequestsForDonor();
+      const history = await Matching.getDonationHistory();
       renderMatchingRequests();
       renderMyResponses();
+      renderDonationHistory(history);
     }
 
     function populateDashboard() {
@@ -482,6 +500,8 @@
         `<i class="fas fa-location-dot"></i> ${d.city}`;
       document.getElementById("dash-pphone").innerHTML =
         `<i class="fas fa-phone"></i> ${d.phone}`;
+      document.getElementById("dash-page").innerHTML =
+        `<i class="fas fa-calendar"></i> Age: ${d.age || '—'}`;
       document.getElementById("avail-toggle").checked = d.available === 1 || d.available === true;
       document.getElementById("avail-label").textContent = d.available
         ? "Available to Donate"
@@ -592,12 +612,47 @@
         .join("");
     }
 
+    // ── Donation History ────────────────────────────────────
+    function renderDonationHistory(history) {
+      const box = document.getElementById("donation-history-container");
+      if (!history || history.length === 0) {
+        box.innerHTML = `
+        <div class="card">
+          <p style="color:var(--gray-400); font-size:0.9rem; text-align:center; padding:1rem;">
+            No donation records yet. Your completed donations will appear here.
+          </p>
+        </div>`;
+        return;
+      }
+
+      box.innerHTML = history
+        .map(
+          (h) => `
+      <div class="card" style="margin-bottom:1rem; border-left: 4px solid var(--success);">
+        <div class="flex-between">
+          <div class="flex gap-2">
+            ${bloodBadgeHTML(h.blood_type, "sm")}
+            <div>
+              <div style="font-weight:600; font-size:0.9rem;">${h.hospitalName}</div>
+              <div style="font-size:0.8rem; color:var(--gray-600);"><i class="fas fa-calendar-check"></i> ${new Date(h.donationDate).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <span class="chip" style="background: rgba(46, 204, 113, 0.1); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.2);">
+            <i class="fas fa-check-circle"></i> Completed
+          </span>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray-600);">
+          <i class="fas fa-location-dot"></i> ${h.city} • <i class="fas fa-vials"></i> ${h.quantity} units
+        </div>
+      </div>`,
+        )
+        .join("");
+    }
+
     // ── Availability Toggle ─────────────────────────────────
     function toggleAvailability() {
       const checked = document.getElementById("avail-toggle").checked;
       currentDonor.available = checked ? 1 : 0;
-      // In a real app we would hit a backend endpoint to toggle availability.
-      // For now, it stays locally updated.
       document.getElementById("avail-label").textContent = checked
         ? "Available to Donate"
         : "Unavailable";
@@ -608,6 +663,81 @@
         checked ? "success" : "error",
       );
       renderMatchingRequests();
+    }
+
+    // ── Profile Details Toggle ────────────────────────────────
+    function toggleProfileDetails() {
+      const el = document.getElementById("donor-profile-details");
+      if (el.style.display === "none") {
+        el.style.display = "block";
+        renderProfileDetails();
+      } else {
+        el.style.display = "none";
+      }
+    }
+
+    function renderProfileDetails() {
+      const d = currentDonor;
+      const bType = d.bloodType || d.blood_type;
+      const box = document.getElementById("profile-details-content");
+      box.innerHTML = `
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-user"></i></div>
+          <div>
+            <div class="profile-detail-label">Full Name</div>
+            <div class="profile-detail-value">${d.name}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div class="profile-detail-label">Email</div>
+            <div class="profile-detail-value">${d.email}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-phone"></i></div>
+          <div>
+            <div class="profile-detail-label">Phone</div>
+            <div class="profile-detail-value">${d.phone || 'Not provided'}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon" style="background: var(--primary-light); color: var(--primary)"><i class="fas fa-droplet"></i></div>
+          <div>
+            <div class="profile-detail-label">Blood Type</div>
+            <div class="profile-detail-value">${bType}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-location-dot"></i></div>
+          <div>
+            <div class="profile-detail-label">City</div>
+            <div class="profile-detail-value">${d.city}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-calendar"></i></div>
+          <div>
+            <div class="profile-detail-label">Age</div>
+            <div class="profile-detail-value">${d.age || 'Not provided'}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon" style="background: #e8f8f0; color: var(--success)"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <div class="profile-detail-label">Account Status</div>
+            <div class="profile-detail-value"><span class="status-badge active"><i class="fas fa-check-circle"></i> Verified & Approved</span></div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon" style="background: ${d.available ? '#e8f8f0' : '#fdecec'}; color: ${d.available ? 'var(--success)' : 'var(--danger)'}"><i class="fas fa-toggle-${d.available ? 'on' : 'off'}"></i></div>
+          <div>
+            <div class="profile-detail-label">Availability</div>
+            <div class="profile-detail-value">${d.available ? 'Available to Donate' : 'Unavailable'}</div>
+          </div>
+        </div>
+      `;
     }
   </script>
 </body>

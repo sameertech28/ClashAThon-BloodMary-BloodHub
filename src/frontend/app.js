@@ -6,7 +6,9 @@
    ================================================== */
 
 // ─── SEED DATA (used only on very first load) ─────────────────────────────
-const backendURL = "http://localhost:3300";
+const backendURL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:3300"
+  : "https://bloodhub-production.up.railway.app"; // Replace with your Railway URL after deployment
 // No seed data — register manually via the Donor/Hospital portals
 const SEED_DONORS = [];
 const SEED_HOSPITALS = [];
@@ -52,9 +54,13 @@ const Session = {
     const token = this.getToken();
     return token ? { "Authorization": `Bearer ${token}` } : {};
   },
-  // Legacy support for scripts expecting liveHospital/liveDonor
-  liveDonor() { return this.getUser(); },
-  liveHospital() { return this.getUser(); }
+  // Role-aware session helpers
+  liveDonor() {
+    return (this.getUser() && this.getRole() === 'donor') ? this.getUser() : null;
+  },
+  liveHospital() {
+    return (this.getUser() && this.getRole() === 'hospital') ? this.getUser() : null;
+  }
 };
 
 // ─── VALIDATION ───────────────────────────────────────────────────────────
@@ -164,7 +170,7 @@ const Matching = {
       // Map to format that donor.html expects
       return result.requests.map(r => ({
         ...r,
-        bloodType: r.blood_type,
+        bloodType: r.bloodType || r.blood_type,
         hospitalName: r.hospitalName,
         patientCondition: r.patientCondition || r.patient_details,
         responders: result.respondedIds.includes(r.id) ? [Session.getUser().id] : []
@@ -184,8 +190,8 @@ const Matching = {
       if (!res.ok) return [];
       return result.map(r => ({
         ...r,
-        bloodType: r.blood_type,
-        patientCondition: r.patient_details
+        bloodType: r.bloodType || r.blood_type,
+        patientCondition: r.patientCondition || r.patient_details
       }));
     } catch (e) {
       console.error(e);
@@ -248,7 +254,7 @@ const Matching = {
   async markFulfilled(requestId) {
     try {
       const res = await fetch(`${backendURL}/requests/${requestId}/fulfill`, {
-        method: "POST",
+        method: "PATCH",
         headers: { ...Session.getAuthHeaders() }
       });
       return res.ok;
@@ -269,20 +275,29 @@ const Matching = {
       console.error(e);
       return false;
     }
+  },
+
+  async getDonationHistory() {
+    try {
+      const res = await fetch(`${backendURL}/donation-history`, {
+        headers: { ...Session.getAuthHeaders() }
+      });
+      const result = await res.json();
+      if (!res.ok) return [];
+      return result;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
   }
 };
 
 // ─── CHATBOT ──────────────────────────────────────────────────────────────
 const Chatbot = {
-  seedData: [
-    { q: "hi", a: "Hello! Welcome to BLOODHUB. How can I help you today?" },
-    { q: "how to donate", a: "To donate blood, register as a donor, check matching requests in your city, and click 'I'M COMING' to alert the hospital." },
-    { q: "emergency", a: "If you have a medical emergency, please contact your local hospital directly or call the emergency hotline at +977-1-XXXXXXXX." },
-    { q: "is it safe", a: "Yes, blood donation is very safe. We ensure all donors meet health eligibility criteria before donating." },
-    { q: "hospital", a: "Hospitals can register on our platform to create emergency blood requests and instantly connect with verified donors." }
-  ],
+  chatHistory: [], // Track conversation history
 
   init() {
+    if (document.getElementById("chatbot-fab")) return; // Prevent double init
     this.injectHTML();
     this.bindEvents();
     this.addMessage("bot", "Hi! I'm your BLOODHUB assistant. Ask me anything about blood donation!");
@@ -344,11 +359,17 @@ const Chatbot = {
     const typing = document.getElementById("chat-typing");
     if (typing) typing.style.display = "block";
 
+    // Add user message to history
+    this.chatHistory.push({ role: "user", content: userMsg });
+
     try {
       const res = await fetch(`${backendURL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({
+          message: userMsg,
+          history: this.chatHistory.slice(-6) // Keep only recent context
+        })
       });
 
       if (typing) typing.style.display = "none";
@@ -356,6 +377,8 @@ const Chatbot = {
       if (res.ok) {
         const data = await res.json();
         this.addMessage("bot", data.response);
+        // Add bot response to history
+        this.chatHistory.push({ role: "assistant", content: data.response });
       } else {
         const data = await res.json();
         this.addMessage("bot", data.error || "I'm having trouble connecting to my brain right now. Please try again later!");
@@ -440,6 +463,7 @@ function buildNav() {
       <a href="contact.html">Contact</a>
     </div>
     <div class="nav-cta" style="margin-left: auto;">
+      <a href="admin.html" class="btn btn-sm" style="background: var(--gray-100); color: var(--gray-600); border-radius: var(--radius-full); font-weight: 600; font-size: 0.8rem; padding: 0.4rem 1rem;"><i class="fas fa-shield-halved"></i> Admin</a>
       <a href="donor.html"    class="btn btn-outline btn-sm">Donor Login</a>
       <a href="hospital.html" class="btn btn-primary btn-sm">Hospital Login</a>
     </div>

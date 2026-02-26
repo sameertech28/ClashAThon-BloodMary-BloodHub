@@ -82,8 +82,8 @@
         <div class="auth-body">
           <div class="alert alert-info" style="margin-bottom: 1rem">
             <i class="fas fa-info-circle"></i>
-            <span>All hospitals are <strong>auto-verified</strong> upon
-              registration for this demo.</span>
+            <span>All hospitals require <strong>admin verification</strong> before
+              accessing the dashboard. Registration is reviewed within 24 hours.</span>
           </div>
           <div id="reg-error" class="alert alert-error" style="display: none"></div>
           <form onsubmit="handleRegister(event)">
@@ -111,6 +111,11 @@
                   <option>Janakpur</option>
                 </select>
               </div>
+            </div>
+            <div class="form-group">
+              <label>Full Hospital Address *</label>
+              <textarea id="reg-address" placeholder="e.g. Street 7, Ward 4, Bharatpur" required rows="2"
+                style="border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 0.8rem; width: 100%; font-family: inherit; font-size: 0.95rem;"></textarea>
             </div>
             <div class="form-grid-2">
               <div class="form-group">
@@ -221,6 +226,10 @@
             <p id="dash-sub" style="color: rgba(255, 255, 255, 0.7)"></p>
           </div>
           <div class="flex gap-2">
+            <button class="btn btn-sm" onclick="toggleHospitalProfile()"
+              style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:var(--radius-full);cursor:pointer;">
+              <i class="fas fa-user"></i> My Profile
+            </button>
             <span class="status-badge active"><i class="fas fa-circle-check"></i> Verified Hospital</span>
             <button onclick="handleLogout()" class="btn btn-white btn-sm">
               <i class="fas fa-arrow-right-from-bracket"></i> Logout
@@ -232,6 +241,27 @@
       <!-- Body -->
       <div class="dashboard-body">
         <div class="container">
+          <!-- Profile Card -->
+          <div class="profile-card mb-4">
+            <div class="profile-avatar" id="dash-avatar">🏥</div>
+            <div class="status-badge active" style="margin-left: -5px; margin-bottom: 30px;"><i
+                class="fas fa-check-circle"></i> Verified</div>
+            <div>
+              <div class="profile-name" id="dash-pname"></div>
+              <div class="profile-sub" id="dash-pcity"></div>
+              <div class="profile-sub" id="dash-pphone" style="margin-top: 2px"></div>
+              <div class="profile-sub" id="dash-paddress"
+                style="margin-top: 4px; font-weight: 500; color: var(--gray-600); max-width: 500px;"></div>
+              <div class="profile-sub" id="dash-plicense" style="margin-top: 2px; font-size: 0.8rem; opacity: 0.8;">
+              </div>
+            </div>
+            <div style="margin-left: auto;">
+              <button class="btn btn-outline btn-sm" onclick="toggleHospitalProfile()">
+                <i class="fas fa-id-card"></i> View Full Profile
+              </button>
+            </div>
+          </div>
+
           <!-- Stats Row -->
           <div class="grid-4 mb-4">
             <div class="stat-card" style="border-top: 4px solid var(--primary)">
@@ -261,6 +291,21 @@
               </div>
               <div class="stat-number">&lt;5m</div>
               <div class="stat-label">Avg. First Response</div>
+            </div>
+          </div>
+
+          <!-- Hospital Profile Details (hidden by default) -->
+          <div id="hospital-profile-details" class="card mb-4"
+            style="display: none; border-top: 4px solid var(--gray-900);">
+            <div class="flex-between mb-3">
+              <h3><i class="fas fa-hospital" style="color: var(--gray-900)"></i> Hospital Profile Details</h3>
+              <button class="btn btn-sm" onclick="toggleHospitalProfile()"
+                style="background:var(--gray-100);color:var(--gray-600);border:none;border-radius:var(--radius-full);cursor:pointer;">
+                <i class="fas fa-times"></i> Close
+              </button>
+            </div>
+            <div class="profile-details-grid" id="hospital-profile-content">
+              <!-- Filled by JS -->
             </div>
           </div>
 
@@ -430,33 +475,25 @@
         password: document.getElementById("reg-pass").value,
         phone: "+977" + document.getElementById("reg-phone").value,
         city: document.getElementById("reg-city").value,
+        address: document.getElementById("reg-address").value,
       };
       console.log("here data: ", data);
       const res = await Auth.registerHospital(data);
       console.log("here res: ", res);
-      console.log("check res: ", res.ok);
       if (!res.ok) {
         const el = document.getElementById("reg-error");
         el.style.display = "flex";
         el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${res.msg}`;
         return;
-      } else {
-        currentHospital = res.hospital;
-        showDashboard();
-        showNotif(
-          `${currentHospital.name} registered and auto-verified! ✅`,
-          "success",
-        );
       }
-      const loginRes = await Auth.loginHospital(data.email, data.password);
-      if (loginRes.ok) {
-        currentHospital = loginRes.hospital;
-        showDashboard();
-        showNotif(
-          `${currentHospital.name} registered and auto-verified! ✅`,
-          "success",
-        );
-      }
+
+      // Show pending approval message
+      const el = document.getElementById("reg-error");
+      el.style.display = "flex";
+      el.className = "alert alert-success";
+      el.innerHTML = `<i class="fas fa-check-circle"></i> Hospital registration submitted! Your account is pending admin approval. You will be able to log in once the admin verifies your hospital.`;
+      e.target.reset();
+      showNotif("Registration submitted! Awaiting admin verification. 🕐", "success");
     }
 
     function handleLogout() {
@@ -464,13 +501,20 @@
     }
 
     function showDashboard() {
+      const h = currentHospital;
       document.getElementById("auth-panel").style.display = "none";
       document.getElementById("dashboard-panel").style.display = "block";
-      document.getElementById("dash-title").textContent =
-        currentHospital.name;
-      document.getElementById("dash-sub").textContent =
-        `${currentHospital.city} · Dashboard`;
-      document.getElementById("req-city").value = currentHospital.city;
+      document.getElementById("dash-title").textContent = h.name;
+      document.getElementById("dash-sub").textContent = `${h.city} · Dashboard`;
+
+      // Populate Profile Card
+      document.getElementById("dash-pname").textContent = h.name;
+      document.getElementById("dash-pcity").innerHTML = `<i class="fas fa-location-dot"></i> ${h.city}`;
+      document.getElementById("dash-pphone").innerHTML = `<i class="fas fa-phone"></i> ${h.phone || '—'}`;
+      document.getElementById("dash-paddress").innerHTML = `<i class="fas fa-map-marker-alt"></i> ${h.address || 'Address not provided'}`;
+      document.getElementById("dash-plicense").innerHTML = `<i class="fas fa-id-badge"></i> License: ${h.license || 'N/A'}`;
+
+      document.getElementById("req-city").value = h.city;
       refreshDashboardData();
     }
 
@@ -561,26 +605,30 @@
           .map((req) => {
             const responders = req.responses || [];
             const isExpanded = expandedRequestId === req.id;
+            const bloodType = req.bloodType || req.blood_type || "Unknown";
+            const patientCondition = req.patientCondition || req.patient_details || "No details provided";
+            const quantity = req.quantity || "N/A";
+
             return (
               '<div class="request-card ' +
               (req.urgency ? req.urgency.toLowerCase() : "normal") +
               '" style="margin-bottom:1rem;">' +
               '<div class="request-card-header">' +
-              bloodBadgeHTML(req.bloodType, "sm") +
+              bloodBadgeHTML(bloodType, "sm") +
               '<div style="flex:1;">' +
               '<div style="font-weight:700; font-family:var(--font-heading); font-size:0.95rem;">' +
-              req.bloodType +
+              bloodType +
               " Blood Needed</div>" +
               '<div style="font-size:0.78rem; color:var(--gray-600);">' +
-              req.quantity +
-              "</div>" +
+              quantity +
+              " Units</div>" +
               "</div>" +
               urgencyBadgeHTML(req.urgency || "Normal") +
               '<span class="status-badge active"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Active</span>' +
               "</div>" +
               '<div class="request-card-body">' +
               '<p style="font-size:0.88rem; color:var(--gray-700); margin-bottom:0.75rem;">' +
-              req.patientCondition +
+              patientCondition +
               "</p>" +
               '<div class="flex gap-2" style="flex-wrap:wrap;">' +
               '<span class="chip"><i class="fas fa-users"></i> <strong>' +
@@ -728,6 +776,73 @@
       alert(
         `Contact Donor:\n\nName: ${name}\nPhone: ${phone}\n\nIn production, this would initiate a masked call or send a notification.`,
       );
+    }
+
+    // ── Hospital Profile ─────────────────────────────────────
+    function toggleHospitalProfile() {
+      const el = document.getElementById("hospital-profile-details");
+      if (el.style.display === "none") {
+        el.style.display = "block";
+        renderHospitalProfile();
+      } else {
+        el.style.display = "none";
+      }
+    }
+
+    function renderHospitalProfile() {
+      const h = currentHospital;
+      const box = document.getElementById("hospital-profile-content");
+      box.innerHTML = `
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon" style="background: var(--gray-100); color: var(--gray-800)"><i class="fas fa-hospital"></i></div>
+          <div>
+            <div class="profile-detail-label">Hospital Name</div>
+            <div class="profile-detail-value">${h.name}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div class="profile-detail-label">Email</div>
+            <div class="profile-detail-value">${h.email}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-phone"></i></div>
+          <div>
+            <div class="profile-detail-label">Phone</div>
+            <div class="profile-detail-value">${h.phone || 'Not provided'}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-location-dot"></i></div>
+          <div>
+            <div class="profile-detail-label">City</div>
+            <div class="profile-detail-value">${h.city}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div>
+            <div class="profile-detail-label">Address</div>
+            <div class="profile-detail-value">${h.address || 'Not provided'}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon"><i class="fas fa-id-badge"></i></div>
+          <div>
+            <div class="profile-detail-label">License / Registration No.</div>
+            <div class="profile-detail-value">${h.license || 'Not provided'}</div>
+          </div>
+        </div>
+        <div class="profile-detail-item">
+          <div class="profile-detail-icon" style="background: #e8f8f0; color: var(--success)"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <div class="profile-detail-label">Verification Status</div>
+            <div class="profile-detail-value"><span class="status-badge active"><i class="fas fa-check-circle"></i> Verified & Approved</span></div>
+          </div>
+        </div>
+      `;
     }
   </script>
 </body>

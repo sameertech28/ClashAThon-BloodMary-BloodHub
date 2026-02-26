@@ -1,0 +1,14 @@
+node_modules/
+.env
+.DS_Store
+*.log
+test_ai.js
+db_debug.js
+update_schema.js
+admin_migration.js
+schema_fix.js
+check_responses.js
+dist/
+build/
+.vercel
+.railway

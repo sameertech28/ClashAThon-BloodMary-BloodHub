@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — BLOODHUB</title>
+  <meta name="description" content="BLOODHUB Admin Dashboard — Manage donors, hospitals, and contact messages." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="container"></div>
+  </nav>
+
+  <!-- ═══════════════ ADMIN LOGIN ═══════════════ -->
+  <div id="admin-auth-panel" style="margin-top: 80px;">
+    <div class="auth-wrapper" id="admin-login-view">
+      <div class="auth-card">
+        <div class="auth-header" style="background: linear-gradient(135deg, #1a1a2e, #16213e)">
+          <div class="auth-icon"><i class="fas fa-shield-halved"></i></div>
+          <h2>Admin Panel</h2>
+          <p>BLOODHUB Administration Dashboard</p>
+        </div>
+        <div class="auth-body">
+          <div id="admin-login-error" class="alert alert-error" style="display: none"></div>
+          <form onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+              <label>Admin Email</label>
+              <input type="email" id="admin-email" placeholder="admin@bloodhub.com" required />
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input type="password" id="admin-pass" placeholder="Admin password" required />
+            </div>
+            <button type="submit" class="btn btn-block btn-lg"
+              style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; border-radius: var(--radius-full); font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <i class="fas fa-right-to-bracket"></i> Login as Admin
+            </button>
+          </form>
+          <div class="auth-switch" style="margin-top: 1rem">
+            <a href="index.html" style="color: var(--primary)"><i class="fas fa-arrow-left"></i> Back to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ADMIN DASHBOARD ═══════════════ -->
+  <div id="admin-dashboard" style="display: none; margin-top: 80px;">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header" style="background: linear-gradient(135deg, #1a1a2e, #16213e)">
+      <div class="container flex-between" style="flex-wrap: wrap; gap: 1rem">
+        <div>
+          <h1 style="color: #fff"><i class="fas fa-shield-halved"></i> Admin Dashboard</h1>
+          <p style="color: rgba(255, 255, 255, 0.7)" id="admin-welcome-sub">Manage donors, hospitals & messages</p>
+        </div>
+        <div class="flex gap-2">
+          <span class="status-badge active"><i class="fas fa-circle-check"></i> Admin</span>
+          <button onclick="handleAdminLogout()" class="btn btn-white btn-sm">
+            <i class="fas fa-arrow-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-body">
+      <div class="container">
+        <!-- Stats Row -->
+        <div class="grid-4 mb-4" id="admin-stats-row">
+          <div class="stat-card" style="border-top: 4px solid var(--primary)">
+            <div class="stat-icon"><i class="fas fa-user-clock" style="color: var(--primary)"></i></div>
+            <div class="stat-number" id="stat-pending-donors">0</div>
+            <div class="stat-label">Pending Donors</div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid #e67e22">
+            <div class="stat-icon"><i class="fas fa-hospital-user" style="color: #e67e22"></i></div>
+            <div class="stat-number" id="stat-pending-hospitals">0</div>
+            <div class="stat-label">Pending Hospitals</div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid var(--info)">
+            <div class="stat-icon"><i class="fas fa-envelope" style="color: var(--info)"></i></div>
+            <div class="stat-number" id="stat-unread-messages">0</div>
+            <div class="stat-label">Unread Messages</div>
+          </div>
+          <div class="stat-card" style="border-top: 4px solid var(--success)">
+            <div class="stat-icon"><i class="fas fa-users" style="color: var(--success)"></i></div>
+            <div class="stat-number" id="stat-total-users">0</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchAdminTab('donors', this)">
+            <i class="fas fa-droplet"></i> Donors <span class="tab-badge" id="tab-badge-donors">0</span>
+          </button>
+          <button class="admin-tab" onclick="switchAdminTab('hospitals', this)">
+            <i class="fas fa-hospital"></i> Hospitals <span class="tab-badge" id="tab-badge-hospitals">0</span>
+          </button>
+          <button class="admin-tab" onclick="switchAdminTab('messages', this)">
+            <i class="fas fa-envelope"></i> Messages <span class="tab-badge" id="tab-badge-messages">0</span>
+          </button>
+        </div>
+
+        <!-- Donors Tab -->
+        <div class="admin-tab-content active" id="tab-donors">
+          <div class="flex-between mb-3" style="flex-wrap: wrap; gap: 1rem">
+            <h2 style="font-size: 1.3rem">
+              <i class="fas fa-users" style="color: var(--primary)"></i> Donor Management
+            </h2>
+            <button onclick="loadAdminData()" class="btn btn-outline btn-sm">
+              <i class="fas fa-rotate-right"></i> Refresh
+            </button>
+          </div>
+          <div id="admin-donors-container">
+            <p class="text-center" style="color: var(--gray-400); padding: 2rem;">Loading donors...</p>
+          </div>
+        </div>
+
+        <!-- Hospitals Tab -->
+        <div class="admin-tab-content" id="tab-hospitals" style="display: none">
+          <div class="flex-between mb-3" style="flex-wrap: wrap; gap: 1rem">
+            <h2 style="font-size: 1.3rem">
+              <i class="fas fa-hospital" style="color: #e67e22"></i> Hospital Management
+            </h2>
+            <button onclick="loadAdminData()" class="btn btn-outline btn-sm">
+              <i class="fas fa-rotate-right"></i> Refresh
+            </button>
+          </div>
+          <div id="admin-hospitals-container">
+            <p class="text-center" style="color: var(--gray-400); padding: 2rem;">Loading hospitals...</p>
+          </div>
+        </div>
+
+        <!-- Messages Tab -->
+        <div class="admin-tab-content" id="tab-messages" style="display: none">
+          <div class="flex-between mb-3" style="flex-wrap: wrap; gap: 1rem">
+            <h2 style="font-size: 1.3rem">
+              <i class="fas fa-envelope" style="color: var(--info)"></i> Contact Messages
+            </h2>
+            <button onclick="loadAdminData()" class="btn btn-outline btn-sm">
+              <i class="fas fa-rotate-right"></i> Refresh
+            </button>
+          </div>
+          <div id="admin-messages-container">
+            <p class="text-center" style="color: var(--gray-400); padding: 2rem;">Loading messages...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand"><i class="fas fa-droplet"></i> BLOODHUB</div>
+          <p style="font-size: 0.9rem; max-width: 280px; line-height: 1.7">
+            Eliminating preventable deaths due to blood unavailability. Connecting every patient with a donor within
+            minutes.
+          </p>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="donor.html">Donor Portal</a></li>
+            <li><a href="hospital.html">Hospital Portal</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <ul class="footer-links">
+            <li><a href="contact.html">Emergency Line</a></li>
+            <li><a href="contact.html">Partnership</a></li>
+            <li><a href="contact.html">Office Location</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>
+          &copy; 2026 BLOODHUB Nepal. Hackathon 2026 Project. Made with
+          <i class="fas fa-heart" style="color: var(--primary)"></i> to save lives.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    let adminToken = null;
+    let adminUser = null;
+    let allDonors = [];
+    let allHospitals = [];
+    let allMessages = [];
+
+    // Check if already logged in
+    window.addEventListener("load", () => {
+      const token = localStorage.getItem("bh_admin_token");
+      const user = localStorage.getItem("bh_admin_user");
+      if (token && user) {
+        adminToken = token;
+        adminUser = JSON.parse(user);
+        showAdminDashboard();
+      }
+    });
+
+    // ── Admin Login ──────────────────────────────────────────
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById("admin-email").value;
+      const pass = document.getElementById("admin-pass").value;
+
+      try {
+        const res = await fetch(`${backendURL}/admin/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          const el = document.getElementById("admin-login-error");
+          el.style.display = "flex";
+          el.innerHTML = `<i class="fas fa-circle-xmark"></i> ${data.error || "Login failed"}`;
+          return;
+        }
+
+        adminToken = data.token;
+        adminUser = data.user;
+        localStorage.setItem("bh_admin_token", adminToken);
+        localStorage.setItem("bh_admin_user", JSON.stringify(adminUser));
+        showAdminDashboard();
+        showNotif(`Welcome, ${adminUser.name}! 🛡️`, "success");
+      } catch (err) {
+        const el = document.getElementById("admin-login-error");
+        el.style.display = "flex";
+        el.innerHTML = `<i class="fas fa-circle-xmark"></i> Network error. Is the backend running?`;
+      }
+    }
+
+    function handleAdminLogout() {
+      localStorage.removeItem("bh_admin_token");
+      localStorage.removeItem("bh_admin_user");
+      adminToken = null;
+      adminUser = null;
+      window.location.reload();
+    }
+
+    function showAdminDashboard() {
+      document.getElementById("admin-auth-panel").style.display = "none";
+      document.getElementById("admin-dashboard").style.display = "block";
+      document.getElementById("admin-welcome-sub").textContent =
+        `Welcome, ${adminUser.name} — Manage donors, hospitals & messages`;
+      loadAdminData();
+    }
+
+    // ── Admin API Helpers ────────────────────────────────────
+    function adminHeaders() {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${adminToken}`
+      };
+    }
+
+    async function adminFetch(url, options = {}) {
+      options.headers = { ...adminHeaders(), ...(options.headers || {}) };
+      const res = await fetch(`${backendURL}${url}`, options);
+      return res;
+    }
+
+    // ── Load Data ────────────────────────────────────────────
+    async function loadAdminData() {
+      try {
+        // Stats
+        const statsRes = await adminFetch("/admin/stats");
+        const stats = await statsRes.json();
+        document.getElementById("stat-pending-donors").textContent = stats.pendingDonors;
+        document.getElementById("stat-pending-hospitals").textContent = stats.pendingHospitals;
+        document.getElementById("stat-unread-messages").textContent = stats.unreadMessages;
+        document.getElementById("stat-total-users").textContent = stats.totalDonors + stats.totalHospitals;
+        document.getElementById("tab-badge-donors").textContent = stats.pendingDonors;
+        document.getElementById("tab-badge-hospitals").textContent = stats.pendingHospitals;
+        document.getElementById("tab-badge-messages").textContent = stats.unreadMessages;
+
+        // Donors
+        const donorsRes = await adminFetch("/admin/donors");
+        allDonors = await donorsRes.json();
+        renderAdminDonors();
+
+        // Hospitals
+        const hospitalsRes = await adminFetch("/admin/hospitals");
+        allHospitals = await hospitalsRes.json();
+        renderAdminHospitals();
+
+        // Messages
+        const messagesRes = await adminFetch("/admin/messages");
+        allMessages = await messagesRes.json();
+        renderAdminMessages();
+      } catch (err) {
+        console.error("Failed to load admin data:", err);
+        showNotif("Failed to load data. Check backend connection.", "error");
+      }
+    }
+
+    // ── Render Donors ────────────────────────────────────────
+    function renderAdminDonors() {
+      const box = document.getElementById("admin-donors-container");
+      if (allDonors.length === 0) {
+        box.innerHTML = `<div class="card"><p style="color:var(--gray-400); text-align:center; padding:2rem;">No donors registered yet.</p></div>`;
+        return;
+      }
+
+      const pending = allDonors.filter(d => !d.approved);
+      const approved = allDonors.filter(d => d.approved);
+
+      let html = '';
+
+      if (pending.length > 0) {
+        html += `<h3 style="margin-bottom:1rem; color:var(--primary)"><i class="fas fa-clock"></i> Pending Approval (${pending.length})</h3>`;
+        html += `<div class="table-wrapper"><table>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Blood Type</th><th>City</th><th>Age</th><th>Actions</th></tr></thead>
+          <tbody>`;
+        pending.forEach(d => {
+          html += `<tr>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.email}</td>
+            <td>${d.phone || '—'}</td>
+            <td>${bloodBadgeHTML(d.blood_type, 'sm')}</td>
+            <td>${d.city}</td>
+            <td>${d.age || '—'}</td>
+            <td>
+              <div class="flex gap-1">
+                <button class="btn btn-success btn-sm" onclick="approveDonor(${d.id})"><i class="fas fa-check"></i> Approve</button>
+                <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;border-radius:var(--radius-full);cursor:pointer;" onclick="rejectDonor(${d.id}, '${d.name}')"><i class="fas fa-times"></i> Reject</button>
+              </div>
+            </td>
+          </tr>`;
+        });
+        html += `</tbody></table></div><div style="margin-bottom:2rem"></div>`;
+      }
+
+      if (approved.length > 0) {
+        html += `<h3 style="margin-bottom:1rem; color:var(--success)"><i class="fas fa-check-circle"></i> Approved Donors (${approved.length})</h3>`;
+        html += `<div class="table-wrapper"><table>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Blood Type</th><th>City</th><th>Age</th><th>Status</th></tr></thead>
+          <tbody>`;
+        approved.forEach(d => {
+          html += `<tr>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.email}</td>
+            <td>${d.phone || '—'}</td>
+            <td>${bloodBadgeHTML(d.blood_type, 'sm')}</td>
+            <td>${d.city}</td>
+            <td>${d.age || '—'}</td>
+            <td><span class="status-badge active"><i class="fas fa-check-circle"></i> Verified</span></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+      }
+
+      box.innerHTML = html;
+    }
+
+    // ── Render Hospitals ─────────────────────────────────────
+    function renderAdminHospitals() {
+      const box = document.getElementById("admin-hospitals-container");
+      if (allHospitals.length === 0) {
+        box.innerHTML = `<div class="card"><p style="color:var(--gray-400); text-align:center; padding:2rem;">No hospitals registered yet.</p></div>`;
+        return;
+      }
+
+      const pending = allHospitals.filter(h => !h.approved);
+      const approved = allHospitals.filter(h => h.approved);
+
+      let html = '';
+
+      if (pending.length > 0) {
+        html += `<h3 style="margin-bottom:1rem; color:#e67e22"><i class="fas fa-clock"></i> Pending Approval (${pending.length})</h3>`;
+        html += `<div class="table-wrapper"><table>
+          <thead><tr><th>Hospital Name</th><th>Email</th><th>Phone</th><th>City</th><th>Address</th><th>License No.</th><th>Actions</th></tr></thead>
+          <tbody>`;
+        pending.forEach(h => {
+          html += `<tr>
+            <td><strong>${h.name}</strong></td>
+            <td>${h.email}</td>
+            <td>${h.phone || '—'}</td>
+            <td>${h.city}</td>
+            <td>${h.address || '—'}</td>
+            <td><code>${h.license_number || '—'}</code></td>
+            <td>
+              <div class="flex gap-1">
+                <button class="btn btn-success btn-sm" onclick="approveHospital(${h.id})"><i class="fas fa-check"></i> Approve</button>
+                <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;border-radius:var(--radius-full);cursor:pointer;" onclick="rejectHospital(${h.id}, '${h.name}')"><i class="fas fa-times"></i> Reject</button>
+              </div>
+            </td>
+          </tr>`;
+        });
+        html += `</tbody></table></div><div style="margin-bottom:2rem"></div>`;
+      }
+
+      if (approved.length > 0) {
+        html += `<h3 style="margin-bottom:1rem; color:var(--success)"><i class="fas fa-check-circle"></i> Approved Hospitals (${approved.length})</h3>`;
+        html += `<div class="table-wrapper"><table>
+          <thead><tr><th>Hospital Name</th><th>Email</th><th>Phone</th><th>City</th><th>Address</th><th>License No.</th><th>Status</th></tr></thead>
+          <tbody>`;
+        approved.forEach(h => {
+          html += `<tr>
+            <td><strong>${h.name}</strong></td>
+            <td>${h.email}</td>
+            <td>${h.phone || '—'}</td>
+            <td>${h.city}</td>
+            <td>${h.address || '—'}</td>
+            <td><code>${h.license_number || '—'}</code></td>
+            <td><span class="status-badge active"><i class="fas fa-check-circle"></i> Verified</span></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+      }
+
+      box.innerHTML = html;
+    }
+
+    // ── Render Messages ──────────────────────────────────────
+    function renderAdminMessages() {
+      const box = document.getElementById("admin-messages-container");
+      if (allMessages.length === 0) {
+        box.innerHTML = `<div class="card"><p style="color:var(--gray-400); text-align:center; padding:2rem;"><i class="fas fa-inbox" style="font-size:2rem; display:block; margin-bottom:0.5rem;"></i>No messages yet.</p></div>`;
+        return;
+      }
+
+      let html = '';
+      allMessages.forEach(m => {
+        const isUnread = !m.is_read;
+        const date = new Date(m.created_at).toLocaleString();
+        html += `
+        <div class="card admin-message-card ${isUnread ? 'unread' : ''}" style="margin-bottom:1rem; ${isUnread ? 'border-left: 4px solid var(--primary);' : ''}">
+          <div class="flex-between" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+            <div class="flex gap-2">
+              <div style="width:42px;height:42px;border-radius:50%;background:${isUnread ? 'var(--primary-light)' : 'var(--gray-100)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas fa-user" style="color:${isUnread ? 'var(--primary)' : 'var(--gray-400)'}"></i>
+              </div>
+              <div>
+                <div style="font-weight:700; font-family:var(--font-heading); font-size:0.95rem;">${m.name}</div>
+                <div style="font-size:0.82rem; color:var(--gray-600);">${m.email}${m.phone ? ' · ' + m.phone : ''}</div>
+              </div>
+            </div>
+            <div class="flex gap-1">
+              ${isUnread ? `<span class="urgency-badge Critical"><i class="fas fa-circle" style="font-size:0.4rem"></i> New</span>` : `<span class="urgency-badge Low"><i class="fas fa-check" style="font-size:0.5rem"></i> Read</span>`}
+              <span style="font-size:0.78rem; color:var(--gray-400)">${date}</span>
+            </div>
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <span style="font-weight:600; font-size:0.9rem; color:var(--gray-800); font-family:var(--font-heading);">${m.subject}</span>
+          </div>
+          <p style="font-size:0.9rem; color:var(--gray-700); line-height:1.6; margin-bottom:1rem; background:var(--gray-50); padding:1rem; border-radius:var(--radius-sm);">${m.message}</p>
+          <div class="flex gap-1">
+            ${isUnread ? `<button class="btn btn-outline btn-sm" onclick="markMessageRead(${m.id})"><i class="fas fa-check"></i> Mark Read</button>` : ''}
+            <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;border-radius:var(--radius-full);cursor:pointer;" onclick="deleteMessage(${m.id})"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>`;
+      });
+
+      box.innerHTML = html;
+    }
+
+    // ── Admin Actions ────────────────────────────────────────
+    async function approveDonor(id) {
+      try {
+        await adminFetch(`/admin/donors/${id}/approve`, { method: "PATCH" });
+        showNotif("Donor approved successfully! ✅", "success");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to approve donor", "error");
+      }
+    }
+
+    async function rejectDonor(id, name) {
+      if (!confirm(`Are you sure you want to reject and remove donor "${name}"? This cannot be undone.`)) return;
+      try {
+        await adminFetch(`/admin/donors/${id}/reject`, { method: "PATCH" });
+        showNotif("Donor rejected and removed.", "error");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to reject donor", "error");
+      }
+    }
+
+    async function approveHospital(id) {
+      try {
+        await adminFetch(`/admin/hospitals/${id}/approve`, { method: "PATCH" });
+        showNotif("Hospital approved and verified! ✅", "success");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to approve hospital", "error");
+      }
+    }
+
+    async function rejectHospital(id, name) {
+      if (!confirm(`Are you sure you want to reject and remove hospital "${name}"? This cannot be undone.`)) return;
+      try {
+        await adminFetch(`/admin/hospitals/${id}/reject`, { method: "PATCH" });
+        showNotif("Hospital rejected and removed.", "error");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to reject hospital", "error");
+      }
+    }
+
+    async function markMessageRead(id) {
+      try {
+        await adminFetch(`/admin/messages/${id}/read`, { method: "PATCH" });
+        showNotif("Message marked as read.", "success");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to update message", "error");
+      }
+    }
+
+    async function deleteMessage(id) {
+      if (!confirm("Delete this message?")) return;
+      try {
+        await adminFetch(`/admin/messages/${id}`, { method: "DELETE" });
+        showNotif("Message deleted.", "success");
+        loadAdminData();
+      } catch (err) {
+        showNotif("Failed to delete message", "error");
+      }
+    }
+
+    // ── Tab Switching ────────────────────────────────────────
+    function switchAdminTab(tab, btn) {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-tab-content').forEach(t => {
+        t.classList.remove('active');
+        t.style.display = 'none';
+      });
+      btn.classList.add('active');
+      const el = document.getElementById(`tab-${tab}`);
+      el.classList.add('active');
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+
+</html>

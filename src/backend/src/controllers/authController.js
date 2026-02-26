@@ -44,7 +44,9 @@ const registerDonor = async (req, res) => {
 };
 
 const registerHospital = async (req, res) => {
-    const { name, license, email, phone, city, password, address } = req.body;
+    console.log("REGISTER HOSPITAL - req.body:", req.body);
+    const { name, email, phone, city, password, address } = req.body;
+    const license = req.body.license || req.body.licence || req.body.license_number;
 
     if (!name || !email || !password || !city) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -53,8 +55,8 @@ const registerHospital = async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const [result] = await pool.query(
-            "INSERT INTO hospitals (name, email, phone, city, password, address, verified) VALUES (?, ?, ?, ?, ?, ?, TRUE)",
-            [name, email, phone || null, city, hashedPassword, address || null],
+            "INSERT INTO hospitals (name, license_number, email, phone, city, password, address, verified) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)",
+            [name, license || null, email, phone || null, city, hashedPassword, address || null],
         );
         res
             .status(201)
@@ -70,6 +72,7 @@ const registerHospital = async (req, res) => {
 };
 
 const login = async (req, res) => {
+    console.log("LOGIN ATTEMPT - req.body:", req.body);
     const { email, password } = req.body;
     if (!email || !password)
         return res.status(400).json({ error: "Email and password required" });
@@ -99,16 +102,36 @@ const login = async (req, res) => {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
+        // Check if account is approved by admin
+        if (user.approved === 0 || user.approved === false) {
+            return res.status(403).json({ error: "Your account is pending admin approval. Please wait for the admin to verify your registration." });
+        }
+
         const token = jwt.sign(
             { id: user.id, role, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: "24h" },
         );
         console.log("user", user.city);
+
+        // Return more profile data
+        const userData = { id: user.id, name: user.name, email: user.email, city: user.city };
+        if (role === "donor") {
+            userData.phone = user.phone;
+            userData.age = user.age;
+            userData.blood_type = user.blood_type;
+            userData.available = user.available;
+        } else if (role === "hospital") {
+            userData.phone = user.phone;
+            userData.address = user.address;
+            userData.license = user.license_number;
+            userData.verified = user.verified;
+        }
+
         res.json({
             token,
             role,
-            user: { id: user.id, name: user.name, email: user.email, city: user.city },
+            user: userData,
         });
     } catch (err) {
         console.error(err);
