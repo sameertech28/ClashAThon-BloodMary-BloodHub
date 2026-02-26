@@ -6,10 +6,8 @@
    ================================================== */
 
 // ─── SEED DATA (used only on very first load) ─────────────────────────────
-const backendURL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:3300"
-  : "https://bloodhub-production.up.railway.app"; // Replace with your Railway URL after deployment
-// No seed data — register manually via the Donor/Hospital portals
+const backendURL = "http://localhost:3300";
+// No seed data 
 const SEED_DONORS = [];
 const SEED_HOSPITALS = [];
 const SEED_REQUESTS = [];
