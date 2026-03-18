@@ -33,23 +33,26 @@ app.use("/", adminRoutes);
 
 // Diagnostic route
 app.get("/test-db", async (req, res) => {
-  const mysql = require("mysql2/promise");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  const pool = require("./src/config/db");
   try {
-    const conn = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT || 10607,
-      ssl: { rejectUnauthorized: false }
+    const [rows] = await pool.query("SELECT 1 as connection_test");
+    res.json({ 
+      success: true, 
+      message: "Pool Connection Successful!", 
+      data: rows[0],
+      env: {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        db: process.env.DB_NAME,
+        port: process.env.DB_PORT
+      }
     });
-    await conn.query("SELECT 1");
-    await conn.end();
-    res.json({ success: true, message: "Cloud Database Connected!" });
   } catch (err) {
     res.status(500).json({ 
       success: false, 
       error: err.message,
+      stack: err.stack,
       config: {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
