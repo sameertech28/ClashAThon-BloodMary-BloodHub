@@ -9,8 +9,9 @@ const pool = mysql.createPool(process.env.MYSQL_URL || {
     port: process.env.DB_PORT || 3306,
     ssl: { rejectUnauthorized: false },
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 1, // Keep it low for Aiven Free and Serverless
     queueLimit: 0,
+    connectTimeout: 10000, // 10 seconds
 });
 
 (async () => {
@@ -19,7 +20,7 @@ const pool = mysql.createPool(process.env.MYSQL_URL || {
         console.log("MySQL Connected successfully to bloodhub");
         connection.release();
     } catch (err) {
-        console.error("MySQL connection failed:", err);
+        console.error("MySQL connection failed:", err.message);
     }
 })();
 
