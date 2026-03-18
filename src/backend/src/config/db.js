@@ -6,12 +6,12 @@ const pool = mysql.createPool(process.env.MYSQL_URL || {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 10607, // Default to Aiven port
     ssl: { rejectUnauthorized: false },
     waitForConnections: true,
-    connectionLimit: 5, // Increase to allow concurrent functions
+    connectionLimit: 5, 
     queueLimit: 0,
-    connectTimeout: 15000, 
+    connectTimeout: 20000, 
 });
 
 module.exports = pool;
