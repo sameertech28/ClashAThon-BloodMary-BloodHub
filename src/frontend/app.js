@@ -11,7 +11,7 @@ const backendURL =
   window.location.hostname === "127.0.0.1" ||
   window.location.protocol === "file:"
     ? "http://127.0.0.1:3300"
-    : "https://clashathon-bloody-mary-bloodhub-production.up.railway.app";
+    : window.location.origin + "/api";
 // No seed data — register manually via the Donor/Hospital portals
 const SEED_DONORS = [];
 const SEED_HOSPITALS = [];
