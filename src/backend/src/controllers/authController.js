@@ -38,8 +38,8 @@ const registerDonor = async (req, res) => {
     } catch (err) {
         if (err.code === "ER_DUP_ENTRY")
             return res.status(409).json({ error: "Email already exists" });
-        console.error(err);
-        res.status(500).json({ error: "Server error during registration" });
+        console.error("Register Donor Error:", err);
+        res.status(500).json({ error: err.message || "Server error during registration" });
     }
 };
 
