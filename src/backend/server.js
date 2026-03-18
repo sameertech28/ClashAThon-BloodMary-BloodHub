@@ -17,6 +17,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Handle Vercel /api prefix
+app.use((req, res, next) => {
+  if (req.url.startsWith("/api")) {
+    req.url = req.url.replace("/api", "");
+  }
+  next();
+});
+
 // Routes
 app.use("/", authRoutes);
 app.use("/", requestRoutes);
