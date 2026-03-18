@@ -277,35 +277,57 @@
 
     // ── Load Data ────────────────────────────────────────────
     async function loadAdminData() {
+      console.log("Admin: Fetching dashboard data...");
       try {
         // Stats
         const statsRes = await adminFetch("/admin/stats");
         const stats = await statsRes.json();
+
+        if (!statsRes.ok) {
+           console.error("Stats fetch failed:", stats);
+           if (statsRes.status === 401 || statsRes.status === 403) {
+             showNotif("Session expired. Please login again.", "error");
+             handleAdminLogout();
+           }
+           return;
+        }
+
         document.getElementById("stat-pending-donors").textContent = stats.pendingDonors;
         document.getElementById("stat-pending-hospitals").textContent = stats.pendingHospitals;
         document.getElementById("stat-unread-messages").textContent = stats.unreadMessages;
-        document.getElementById("stat-total-users").textContent = stats.totalDonors + stats.totalHospitals;
+        document.getElementById("stat-total-users").textContent = (stats.totalDonors || 0) + (stats.totalHospitals || 0);
         document.getElementById("tab-badge-donors").textContent = stats.pendingDonors;
         document.getElementById("tab-badge-hospitals").textContent = stats.pendingHospitals;
         document.getElementById("tab-badge-messages").textContent = stats.unreadMessages;
 
         // Donors
         const donorsRes = await adminFetch("/admin/donors");
-        allDonors = await donorsRes.json();
-        renderAdminDonors();
+        const donorsData = await donorsRes.json();
+        if (donorsRes.ok) {
+            allDonors = Array.isArray(donorsData) ? donorsData : [];
+            renderAdminDonors();
+        } else {
+            console.error("Donors fetch failed:", donorsData);
+        }
 
         // Hospitals
         const hospitalsRes = await adminFetch("/admin/hospitals");
-        allHospitals = await hospitalsRes.json();
-        renderAdminHospitals();
+        const hospitalsData = await hospitalsRes.json();
+        if (hospitalsRes.ok) {
+            allHospitals = Array.isArray(hospitalsData) ? hospitalsData : [];
+            renderAdminHospitals();
+        }
 
         // Messages
         const messagesRes = await adminFetch("/admin/messages");
-        allMessages = await messagesRes.json();
-        renderAdminMessages();
+        const messagesData = await messagesRes.json();
+        if (messagesRes.ok) {
+            allMessages = Array.isArray(messagesData) ? messagesData : [];
+            renderAdminMessages();
+        }
       } catch (err) {
         console.error("Failed to load admin data:", err);
-        showNotif("Failed to load data. Check backend connection.", "error");
+        showNotif("Connection error. Is the backend running at " + backendURL + "?", "error");
       }
     }
 
